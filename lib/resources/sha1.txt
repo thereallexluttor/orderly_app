@@ -1,0 +1,30 @@
+Alias: AndroidDebugKey
+MD5: FF:14:29:B2:AA:A3:79:FB:FE:E1:FF:50:D8:A5:6A:DE
+SHA1: 93:C8:A1:8B:AC:E6:59:D8:20:5B:5D:8A:3A:A7:6C:14:B0:5B:0D:B0
+SHA-256: D7:3F:C7:54:18:4D:56:19:D5:53:2B:D6:CF:89:98:A9:B3:4D:5C:11:4E:26:D7:6E:ED:65:8F:8D:54:9F:3A:53
+Valid until: Tuesday, February 24, 2054
+----------
+Variant: release
+Config: debug
+Store: C:\Users\hedin\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: FF:14:29:B2:AA:A3:79:FB:FE:E1:FF:50:D8:A5:6A:DE
+SHA1: 93:C8:A1:8B:AC:E6:59:D8:20:5B:5D:8A:3A:A7:6C:14:B0:5B:0D:B0
+SHA-256: D7:3F:C7:54:18:4D:56:19:D5:53:2B:D6:CF:89:98:A9:B3:4D:5C:11:4E:26:D7:6E:ED:65:8F:8D:54:9F:3A:53
+Valid until: Tuesday, February 24, 2054
+----------
+Variant: profile
+Config: debug
+Store: C:\Users\hedin\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: FF:14:29:B2:AA:A3:79:FB:FE:E1:FF:50:D8:A5:6A:DE
+SHA1: 93:C8:A1:8B:AC:E6:59:D8:20:5B:5D:8A:3A:A7:6C:14:B0:5B:0D:B0
+SHA-256: D7:3F:C7:54:18:4D:56:19:D5:53:2B:D6:CF:89:98:A9:B3:4D:5C:11:4E:26:D7:6E:ED:65:8F:8D:54:9F:3A:53
+Valid until: Tuesday, February 24, 2054
+----------
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\hedin\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: FF:14:29:B2:AA:A3:79:FB:FE:E1:FF:50:D8:A5:6A:DE
+SHA1: 93:C8:A1:8B:AC:E6:59:D8:20:5B:5D:8A:3A:A7:6C:14:B0:5B:0D:B0
