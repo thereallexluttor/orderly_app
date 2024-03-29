@@ -44,6 +44,8 @@ dependencies:
   flutter_form_builder: ^9.2.1
   intl_phone_number_input: ^0.7.4
   shared_preferences: ^2.2.2
+  carousel_slider: ^4.2.1
+  cached_network_image: ^3.3.1
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +82,7 @@ flutter:
       - lib/images/icons/phone.png
       - lib/images/logos/mascota.jpg
       - lib/images/animations/Animation.gif
+      - lib/images/icons/magnifying-glass.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
