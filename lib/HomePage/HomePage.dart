@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:orderly_app/QR_scanner/qr_scanner.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -70,36 +71,36 @@ class _HomePageState extends State<HomePage> {
                 }).toList(),
               ),
             Center(
-  child: SizedBox(
-    width: 320,
-    child: Material(
-      elevation: 5.0,
-      borderRadius: const BorderRadius.all(Radius.circular(30.0)),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 50.0),
-          hintText: '       Busca Opciones cerca de ti',
-          prefixIcon: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Image.asset('lib/images/icons/magnifying-glass.png', width: 5, height: 5,), // Reemplaza 'assets/tu_imagen.png' con la ruta de tu imagen
-          ),
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(30.0)),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: const Color.fromARGB(255, 255, 255, 255),
-          hintStyle: const TextStyle(
-            fontFamily: 'Poppins-L',
-            fontSize: 13,
-            color: Color.fromARGB(255, 87, 87, 87),
-          ),
-        ),
-      ),
-    ),
-  ),
-),
+                child: SizedBox(
+                  width: 320,
+                  child: Material(
+                    elevation: 5.0,
+                    borderRadius: const BorderRadius.all(Radius.circular(30.0)),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 50.0),
+                        hintText: '       Busca Opciones cerca de ti',
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Image.asset('lib/images/icons/magnifying-glass.png', width: 5, height: 5,), // Reemplaza 'assets/tu_imagen.png' con la ruta de tu imagen
+                        ),
+                        border: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(30.0)),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: const Color.fromARGB(255, 255, 255, 255),
+                        hintStyle: const TextStyle(
+                          fontFamily: 'Poppins-L',
+                          fontSize: 13,
+                          color: Color.fromARGB(255, 87, 87, 87),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 15),
               Center(
                 child: SizedBox(
@@ -129,6 +130,71 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
+              
+            ],
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: Container(
+          margin: const EdgeInsets.only(top: 0.0),
+          child: FloatingActionButton(
+            onPressed: () {
+             // Navegar a la página QR al presionar el botón flotante
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => QR_Scanner()),
+      );
+            },
+            backgroundColor: const Color.fromARGB(250, 255, 255, 255),
+            foregroundColor: const Color(0xFFB747EB),
+            elevation: 7,
+            shape: const CircleBorder(eccentricity: 0.5),
+            child: const Icon(Icons.qr_code),
+          ),
+        ),
+        bottomNavigationBar: BottomAppBar(
+          notchMargin: 7.0,
+          shape: const CircularNotchedRectangle(),
+          color: Color.fromARGB(255, 252, 252, 252),
+          height: 34,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 0.0),
+                child: InkWell(
+                  onTap: () {
+                    _scrollController.animateTo(
+                      0.0,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.ease,
+                    );
+                  },
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 0.0),
+                child: InkWell(
+                  onTap: () {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.ease,
+                    );
+                  },
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -138,7 +204,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildButton(int index, String emoji, String dishName) {
     bool isSelected = index == _selectedButtonIndex;
-    double buttonWidth = 90 + dishName.length * 4; // Ajusta el tamaño del botón basado en la longitud del texto del plato
+    double buttonWidth = 90 + dishName.length * 2; // Ajusta el tamaño del botón basado en la longitud del texto del plato
     return ElevatedButton(
       onPressed: () {
         setState(() {
@@ -194,7 +260,10 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+
+    
   }
+  
 }
 
 void main() {
