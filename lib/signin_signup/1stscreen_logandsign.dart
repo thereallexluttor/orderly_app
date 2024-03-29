@@ -18,10 +18,10 @@ class logandsign extends StatelessWidget {
             children: [
               SizedBox(height: 100),
 
-              Center(
+              const Center(
                 child: Image(
                   
-                    image: AssetImage("lib/images/logos/orderly_icon.png"),
+                    image: AssetImage("lib/images/logos/orderly_icon3.png"),
                     height: 200,
                     width: 200,
                     ),
@@ -43,7 +43,7 @@ class logandsign extends StatelessWidget {
               const SizedBox(height: 43),
               const SizedBox(height: 30),
               const SizedBox(height: 3),
-              Padding(
+              const Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25.0),
                 child: Row(
                   children: [
