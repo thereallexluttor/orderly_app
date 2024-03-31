@@ -39,13 +39,14 @@ dependencies:
   firebase_auth: ^4.18.0
   google_sign_in: ^6.2.1
   cloud_firestore: ^4.15.10
-  geolocator: ^11.0.0
+  geolocator: ^10.0.0
   geocoding: ^3.0.0
   flutter_form_builder: ^9.2.1
   intl_phone_number_input: ^0.7.4
   shared_preferences: ^2.2.2
   carousel_slider: ^4.2.1
   cached_network_image: ^3.3.1
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:
@@ -117,6 +118,9 @@ flutter:
     - family: Poppins-L
       fonts:
         - asset: lib/fonts/Poppins-Light.ttf
+    - family: Poppins-EL
+      fonts:
+        - asset: lib/fonts/Poppins-ExtraLight.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

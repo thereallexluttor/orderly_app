@@ -4,6 +4,13 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+<string>Se necesita acceso a tu ubicación para encontrar restaurantes cercanos.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>Se necesita acceso a tu ubicación para encontrar restaurantes cercanos.</string>
+<key>NSLocationAlwaysUsageDescription</key>
+<string>Se necesita acceso a tu ubicación para encontrar restaurantes cercanos.</string>
+
 	<key>CFBundleDisplayName</key>
 	<string>Orderly App</string>
 	<key>CFBundleExecutable</key>
