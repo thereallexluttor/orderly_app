@@ -1,19 +1,25 @@
-import 'dart:async';
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:orderly_app/QR_scanner/qr_scanner.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class RestauranteItem extends StatelessWidget {
+class RestauranteItem extends StatefulWidget {
   final String nombre;
   final String urlLogo;
-  final String gpsPoint;
+  final GeoPoint gpsPoint;
   final String categoria;
   final double distancia;
   final String descripcion;
+  final bool isSelected;
+  final VoidCallback? onMapOpened;
+  final VoidCallback? onMapClosed;
+  final Position? currentPosition;
 
   const RestauranteItem({
     Key? key,
@@ -23,85 +29,171 @@ class RestauranteItem extends StatelessWidget {
     required this.categoria,
     required this.distancia,
     required this.descripcion,
+    required this.isSelected,
+    this.onMapOpened,
+    this.onMapClosed,
+    this.currentPosition,
   }) : super(key: key);
 
   @override
+  _RestauranteItemState createState() => _RestauranteItemState();
+}
+
+class _RestauranteItemState extends State<RestauranteItem> {
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 80,
-      child: Card(
-        color: const Color.fromRGBO(255, 255, 255, 1),
-        shadowColor: Colors.black,
-        margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
-        elevation: 0.3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: Row(
+    return InkWell(
+      onTap: () {
+        
+      },
+      child: Container(
+        height: widget.isSelected ? 300 : 120,
+        child: Card(
+          color: const Color.fromRGBO(255, 255, 255, 1),
+          shadowColor: Colors.black,
+          margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal:5.0),
+          elevation: 0.3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          child: Stack(
             children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(10.0),
-                  image: DecorationImage(
-                    image: CachedNetworkImageProvider(urlLogo),
-                    fit: BoxFit.cover,
+              _buildContent(),
+              Positioned(
+                top: 5,
+                right: 15,
+                child: Text(
+                  '${widget.distancia.toStringAsFixed(1)} Km',
+                  style: const TextStyle(
+                    fontFamily: "Poppins",
+                    color: Colors.purple,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 11,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          nombre,
-                          style: const TextStyle(
-                            fontFamily: "Poppins-l",
-                            color: Color.fromARGB(255, 0, 0, 0),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        Text(
-                          descripcion,
-                          style: const TextStyle(
-                            fontFamily: "Poppins-l",
-                            color: Color.fromARGB(255, 92, 92, 92),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Positioned(
-                      bottom: 50,
-                      right: 10,
-                      child: Text(
-                        '${distancia.toStringAsFixed(1)} Km',
-                        style: TextStyle(
-                          fontFamily: "Poppins",
-                          color: Colors.purple,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: _buildLocationButton(),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+ Widget _buildLocationButton() {
+  return Padding(
+    padding: const EdgeInsets.only(right: 10), // Ajusta el padding a tu preferencia
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 2,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            iconSize: 20,
+            icon: Icon(Icons.location_on, color: Colors.purple),
+            onPressed: () {
+              _openGoogleMaps();
+            },
+          ),
+        ),
+        const SizedBox(height: 0),
+        Text(
+          'Como llegar?',
+          style: TextStyle(
+            fontFamily: "Poppins",
+            color: Colors.purple,
+            fontWeight: FontWeight.normal,
+            fontSize: 7,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+  Widget _buildContent() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(10.0),
+              image: DecorationImage(
+                image: CachedNetworkImageProvider(widget.urlLogo),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            height: double.infinity,
+            width: 4,
+            color: Color.fromARGB(255, 238, 238, 238),
+            margin: const EdgeInsets.symmetric(vertical: 10.0),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  widget.nombre,
+                  style: const TextStyle(
+                    fontFamily: "Poppins-l",
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(right: 80), // Agrega margen solo a la derecha
+                  child: Text(
+                    widget.descripcion,
+                    style: const TextStyle(
+                      fontFamily: "Poppins-l",
+                      color: Color.fromARGB(255, 92, 92, 92),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openGoogleMaps() {
+    final String destination = '${widget.gpsPoint.latitude},${widget.gpsPoint.longitude}';
+    final String origin = '${widget.currentPosition?.latitude},${widget.currentPosition?.longitude}';
+    final String url = 'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination';
+    launch(url);
   }
 }
 
@@ -126,6 +218,8 @@ class _HomePageState extends State<HomePage> {
     'https://firebasestorage.googleapis.com/v0/b/orderly-33eb6.appspot.com/o/4.png?alt=media&token=5de7a562-8f6d-4732-930f-fe780b465cda',
   ];
   int _selectedButtonIndex = 0;
+  RestauranteItem? _currentOpenRestaurant;
+  Map<String, bool> _restaurantSelectionState = {};
 
   @override
   void initState() {
@@ -155,6 +249,8 @@ class _HomePageState extends State<HomePage> {
     final snapshot = await FirebaseFirestore.instance
         .collection('Orderly')
         .doc('restaurantes')
+
+
         .collection('restaurantes')
         .get();
     setState(() {
@@ -306,7 +402,6 @@ class _HomePageState extends State<HomePage> {
                     final categoria = restaurante['categoria'];
                     final descripcion = restaurante['descripcion'];
 
-                    // Calcular la distancia si se tiene la posición actual
                     double distancia = 0.0;
                     if (_currentPosition != null && gpsPoint != null) {
                       distancia = Geolocator.distanceBetween(
@@ -314,13 +409,13 @@ class _HomePageState extends State<HomePage> {
                         _currentPosition!.longitude,
                         gpsPoint.latitude,
                         gpsPoint.longitude,
-                      ) / 1000; // Convertir a kilómetros
+                      ) / 1000;
                     }
 
                     return Container(
                       margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
                       decoration: BoxDecoration(
-                        color: Colors.white, // Fondo blanco detrás del widget de restaurante
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(15.0),
                         boxShadow: [
                           BoxShadow(
@@ -334,71 +429,15 @@ class _HomePageState extends State<HomePage> {
                       child: RestauranteItem(
                         nombre: nombre,
                         urlLogo: urlLogo,
-                        gpsPoint: "$gpsPoint.latitude, $gpsPoint.longitude",
+                        gpsPoint: gpsPoint,
                         categoria: categoria,
                         distancia: distancia,
                         descripcion: descripcion,
+                        isSelected: _currentOpenRestaurant?.nombre == nombre,
+                        currentPosition: _currentPosition, // Agregado: pasar la posición actual
                       ),
                     );
                   },
-                ),
-              ),
-            ],
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => QR_Scanner()),
-            );
-          },
-          backgroundColor: const Color.fromARGB(250, 255, 255, 255),
-          foregroundColor: const Color(0xFFB747EB),
-          elevation: 7,
-          shape: const CircleBorder(eccentricity: 0.5),
-          child: const Icon(Icons.qr_code),
-        ),
-        bottomNavigationBar: BottomAppBar(
-          notchMargin: 7.0,
-          shape: const CircularNotchedRectangle(),
-          color: Color.fromARGB(255, 252, 252, 252),
-          height: 34,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 0.0),
-                child: InkWell(
-                  onTap: () {
-                    _scrollController.animateTo(
-                      0.0,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.ease,
-                    );
-                  },
-                  child: const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 0.0),
-                child: InkWell(
-                  onTap: () {
-                    _scrollController.animateTo(
-                      _scrollController.position.maxScrollExtent,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.ease,
-                    );
-                  },
-                  child: const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [],
-                  ),
                 ),
               ),
             ],
@@ -423,7 +462,7 @@ class _HomePageState extends State<HomePage> {
               curve: Curves.ease,
             );
           }
-          _filterRestaurantesByCategory(dishName); 
+          _filterRestaurantesByCategory(dishName);
         });
       },
       style: ElevatedButton.styleFrom(
@@ -463,7 +502,7 @@ class _HomePageState extends State<HomePage> {
                 fontSize: 11,
                 color: Colors.white,
                 fontFamily: "Poppins_l",
-                fontWeight: FontWeight.bold
+                fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.start,
             ),
