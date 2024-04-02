@@ -1,13 +1,11 @@
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:orderly_app/QR_scanner/qr_scanner.dart';
 
 class RestauranteItem extends StatefulWidget {
   final String nombre;
@@ -43,15 +41,13 @@ class _RestauranteItemState extends State<RestauranteItem> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        
-      },
+      onTap: () {},
       child: Container(
-        height: widget.isSelected ? 300 : 120,
+        height: widget.isSelected ? 300 : 75,
         child: Card(
           color: const Color.fromRGBO(255, 255, 255, 1),
           shadowColor: Colors.black,
-          margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal:5.0),
+          margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
           elevation: 0.3,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
@@ -83,52 +79,50 @@ class _RestauranteItemState extends State<RestauranteItem> {
     );
   }
 
- Widget _buildLocationButton() {
-  return Padding(
-    padding: const EdgeInsets.only(right: 10), // Ajusta el padding a tu preferencia
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                spreadRadius: 1,
-                blurRadius: 2,
-                offset: const Offset(0, 2),
-              ),
-            ],
+  Widget _buildLocationButton() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 10), // Ajusta el padding a tu preferencia
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  //color: Colors.black.withOpacity(0.2),
+                  //spreadRadius: 1,
+                  //blurRadius: 2,
+                  //offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              iconSize: 20,
+              icon: const Icon(Icons.location_on, color: Colors.purple),
+              onPressed: () {
+                _openGoogleMaps();
+              },
+            ),
           ),
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            iconSize: 20,
-            icon: Icon(Icons.location_on, color: Colors.purple),
-            onPressed: () {
-              _openGoogleMaps();
-            },
+          const SizedBox(height: 2),
+          const Text(
+            'Como llegar?',
+            style: TextStyle(
+              fontFamily: "Poppins",
+              color: Colors.purple,
+              fontWeight: FontWeight.normal,
+              fontSize: 7,
+            ),
           ),
-        ),
-        const SizedBox(height: 0),
-        Text(
-          'Como llegar?',
-          style: TextStyle(
-            fontFamily: "Poppins",
-            color: Colors.purple,
-            fontWeight: FontWeight.normal,
-            fontSize: 7,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-
+        ],
+      ),
+    );
+  }
 
   Widget _buildContent() {
     return Padding(
@@ -151,7 +145,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
           Container(
             height: double.infinity,
             width: 4,
-            color: Color.fromARGB(255, 238, 238, 238),
+            color: const Color.fromARGB(255, 238, 238, 238),
             margin: const EdgeInsets.symmetric(vertical: 10.0),
           ),
           const SizedBox(width: 10),
@@ -193,10 +187,10 @@ class _RestauranteItemState extends State<RestauranteItem> {
     final String destination = '${widget.gpsPoint.latitude},${widget.gpsPoint.longitude}';
     final String origin = '${widget.currentPosition?.latitude},${widget.currentPosition?.longitude}';
     final String url = 'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination';
+    // ignore: deprecated_member_use
     launch(url);
   }
 }
-
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -219,7 +213,6 @@ class _HomePageState extends State<HomePage> {
   ];
   int _selectedButtonIndex = 0;
   RestauranteItem? _currentOpenRestaurant;
-  Map<String, bool> _restaurantSelectionState = {};
 
   @override
   void initState() {
@@ -249,8 +242,6 @@ class _HomePageState extends State<HomePage> {
     final snapshot = await FirebaseFirestore.instance
         .collection('Orderly')
         .doc('restaurantes')
-
-
         .collection('restaurantes')
         .get();
     setState(() {
@@ -267,24 +258,42 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _filterRestaurantesByName(String name) {
+    setState(() {
+      _filteredRestaurantesData = _allRestaurantesData.where((restaurante) {
+        return restaurante['nombre_restaurante'].toLowerCase().contains(name.toLowerCase());
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
+        appBar: AppBar(
+          
+        title: const Image(
+          image: AssetImage("lib/images/logos/orderly_icon3.png"),
+          height: 60,
+          width: 110,
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              // Mostrar menú emergente de ajustes
+              _showSettingsMenu(context);
+            },
+          ),
+        ],
+        toolbarHeight: 50,
+      ),
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 12),
-              const Padding(
-                padding: EdgeInsets.only(left: 5),
-                child: Image(
-                  image: AssetImage("lib/images/logos/orderly_icon3.png"),
-                  height: 40,
-                  width: 120,
-                ),
-              ),
+              const SizedBox(height: 0),
               CarouselSlider(
                 options: CarouselOptions(
                   autoPlay: true,
@@ -317,6 +326,7 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: const BorderRadius.all(Radius.circular(30.0)),
                     child: TextField(
                       controller: _searchController,
+                      onChanged: _filterRestaurantes,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 50.0),
                         hintText: '       Busca Opciones cerca de ti',
@@ -344,30 +354,19 @@ class _HomePageState extends State<HomePage> {
               Center(
                 child: SizedBox(
                   height: 40,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 0.0),
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        const SizedBox(width: 10),
-                        _buildButton(0, '🍔', 'Burgers'),
-                        const SizedBox(width: 10),
-                        _buildButton(1, '🍕', 'Pizza'),
-                        const SizedBox(width: 10),
-                        _buildButton(2, '🍗', 'Pollo'),
-                        const SizedBox(width: 10),
-                        _buildButton(3, '🍥', 'Sushi'),
-                        const SizedBox(width: 10),
-                        _buildButton(4, '🌭', 'HotDog'),
-                        const SizedBox(width: 10),
-                        _buildButton(5, '🇮🇹', 'Italiana'),
-                        const SizedBox(width: 10),
-                        _buildButton(6, '🇲🇽', 'Mexicana'),
-                        const SizedBox(width: 10),
-                        _buildButton(7, '🐟', 'Comida de mar'),
-                        const SizedBox(width: 10),
-                      ],
-                    ),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _categories.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: EdgeInsets.only(left: index == 0 ? 10 : 0, right: 10),
+                        child: _buildButton(
+                          index,
+                          _emojis[index],
+                          _categories[index],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -443,78 +442,219 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => QR_Scanner()),
+            );
+          },
+          backgroundColor: const Color.fromARGB(250, 255, 255, 255),
+          foregroundColor: const Color(0xFFB747EB),
+          elevation: 7,
+          shape: const CircleBorder(eccentricity: 0.5),
+          child: const Icon(Icons.qr_code),
+        ),
+        bottomNavigationBar: BottomAppBar(
+          notchMargin: 3,
+          shape: const CircularNotchedRectangle(),
+          color: const Color.fromARGB(255, 252, 252, 252),
+          height: 34,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 0.0),
+                child: InkWell(
+                  onTap: () {
+                    _scrollController.animateTo(
+                      0.0,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.ease,
+                    );
+                  },
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 0.0),
+                child: InkWell(
+                  onTap: () {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.ease,
+                    );
+                  },
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildButton(int index, String emoji, String dishName) {
-    bool isSelected = index == _selectedButtonIndex;
-    double buttonWidth = 90 + dishName.length * 2;
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _selectedButtonIndex = index;
-          if (index >= 1 && index <= 5) {
-            double scrollOffset = index * (buttonWidth + 20);
-            _scrollController.animateTo(
-              scrollOffset,
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.ease,
-            );
-          }
-          _filterRestaurantesByCategory(dishName);
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        fixedSize: Size(buttonWidth, 40),
-        elevation: 1,
-        side: const BorderSide(color: Color.fromARGB(255, 236, 236, 236)),
-        backgroundColor: isSelected ? Color.fromARGB(255, 183, 71, 235) : Color.fromARGB(255, 134, 134, 134),
-        padding: EdgeInsets.zero,
-        alignment: Alignment.centerLeft,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(left: 10),
-            height: 25,
-            width: 25,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-            ),
-            child: Center(
-              child: Text(
-                emoji,
-                style: TextStyle(
-                  fontSize: 17,
-                  color: isSelected ? const Color.fromARGB(255, 158, 158, 158) : Color.fromARGB(255, 168, 168, 168),
-                ),
-              ),
-            ),
+  bool isSelected = index == _selectedButtonIndex;
+  double buttonWidth = 90 + dishName.length * 2;
+  return ElevatedButton(
+    onPressed: () {
+      setState(() {
+        _selectedButtonIndex = index;
+        if (index >= 1 && index <= 5) {
+          double scrollOffset = index * (buttonWidth + 20);
+          _scrollController.animateTo(
+            scrollOffset,
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.ease,
+          );
+        }
+        _filterRestaurantesByCategory(dishName);
+      });
+    },
+    style: ElevatedButton.styleFrom(
+      fixedSize: Size(buttonWidth, 40),
+      elevation: 1,
+      side: const BorderSide(color: Color.fromARGB(255, 236, 236, 236)),
+      backgroundColor: isSelected ? const Color.fromARGB(255, 183, 71, 235) : const Color.fromARGB(255, 134, 134, 134),
+      padding: EdgeInsets.zero,
+      alignment: Alignment.centerLeft,
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(left: 10),
+          height: 25, // Ajusta el tamaño del círculo
+          width: 25, // Ajusta el tamaño del círculo
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
           ),
-          const SizedBox(width: 8),
-          Expanded(
+          child: Center(
             child: Text(
-              dishName,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.white,
-                fontFamily: "Poppins_l",
-                fontWeight: FontWeight.bold,
+              emoji,
+              style: TextStyle(
+                fontSize: 15, // Ajusta el tamaño del emoji
+                color: isSelected ? const Color.fromARGB(255, 158, 158, 158) : Color.fromARGB(255, 168, 168, 168),
               ),
-              textAlign: TextAlign.start,
             ),
           ),
-        ],
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            dishName,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.white,
+              fontFamily: "Poppins_l",
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.start,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+  static const List<String> _emojis = [
+    '🍔', '🍕', '🍗', '🍥', '🌭', '🇮🇹', '🇲🇽', '🐟',
+  ];
+
+  static const List<String> _categories = [
+    'Burgers', 'Pizza', 'Pollo', 'Sushi', 'HotDog', 'Italiana', 'Mexicana', 'Comida de mar',
+  ];
+
+  void _filterRestaurantes(String searchText) {
+    if (searchText.isEmpty) {
+      _filterRestaurantesByCategory(_categories[_selectedButtonIndex]);
+    } else {
+      _filterRestaurantesByName(searchText);
+    }
+  }
+
+  void _showSettingsMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+             
+              _buildSettingsMenuItem(Icons.book_sharp, 'Historial de ordenes', () {
+                // Implementar acción para salir de la app
+              }),
+              _buildSettingsMenuItem(Icons.phone, 'Soporte', () {
+                // Implementar acción para salir de la app
+              }),
+              _buildSettingsMenuItem(Icons.person, 'Información personal', () {
+                // Implementar acción para información personal
+              }),
+              _buildSettingsMenuItem(Icons.monetization_on, 'Medios de pago', () {
+                // Implementar acción para información personal
+              }),
+              _buildSettingsMenuItem(Icons.discount_sharp, 'Cupones', () {
+                // Implementar acción para información personal
+              }),
+              _buildSettingsMenuItem(Icons.warning, 'Terminos y condiciones', () {
+                // Implementar acción para información personal
+              }),
+              _buildSettingsMenuItem(Icons.exit_to_app, 'Salir de la app', () {
+                // Implementar acción para salir de la app
+              }),
+              
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsMenuItem(IconData icon, String text, Function onTap) {
+    return InkWell(
+      onTap: () {
+        onTap();
+        Navigator.pop(context);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.grey[700]),
+            SizedBox(width: 16),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
     home: HomePage(),
   ));
 }

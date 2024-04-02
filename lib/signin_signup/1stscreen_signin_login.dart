@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:orderly_app/HomePage/HomePage.dart';
 import 'package:orderly_app/Personal_information/PersonalInformation.dart';
 import 'package:orderly_app/signin_signup/1stscreen_logandsign.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart'; // Importa el paquete de manejo de permisos
 
 class FadePageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
@@ -41,27 +41,24 @@ class logincontroller extends StatefulWidget {
 
 class _logincontrollerState extends State<logincontroller> {
   bool _personalInfoCompleted = false;
-  late SharedPreferences _prefs;
 
   @override
   void initState() {
     super.initState();
-    _loadPersonalInfoCompletedStatus();
+    checkPermissions(); // Llama a la función para verificar los permisos al inicializar el widget
   }
 
-  void _loadPersonalInfoCompletedStatus() async {
-    _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _personalInfoCompleted = _prefs.getBool('personalInfoCompleted') ?? false;
-    });
-  }
-
-  void _setPersonalInfoCompleted() async {
-    _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _personalInfoCompleted = true;
-      _prefs.setBool('personalInfoCompleted', true);
-    });
+  Future<void> checkPermissions() async {
+    // Verifica si el permiso de ubicación está concedido
+    if (await Permission.location.isGranted) {
+      // Si está concedido, continúa con la lógica de autenticación
+      setState(() {
+        _personalInfoCompleted = true;
+      });
+    } else {
+      // Si no está concedido, solicita el permiso
+      await Permission.location.request();
+    }
   }
 
   @override
@@ -70,48 +67,38 @@ class _logincontrollerState extends State<logincontroller> {
       body: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          
           if (snapshot.hasData) {
             final User? user = snapshot.data;
             if (user != null) {
               return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 future: FirebaseFirestore.instance.collection('Orderly').doc('Users').collection('users').doc(user.uid).get(),
                 builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
-                  
                   if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
                   }
 
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+
                   if (snapshot.hasData && snapshot.data!.exists) {
-                    Map<String, dynamic>? userData = snapshot.data!.data();
-                    if (userData != null) {
-                      bool basicInfoCompleted = userData.containsKey('email') &&
-                          userData.containsKey('name') &&
-                          userData.containsKey('photo');
-                      bool personalInfoCompleted = userData.containsKey('gender') &&
-                          userData.containsKey('birthdate') &&
-                          userData.containsKey('phoneNumber') &&
-                          userData.containsKey('latitude') &&
-                          userData.containsKey('longitude');
-                      
-                      if (basicInfoCompleted && personalInfoCompleted) {
-                        _setPersonalInfoCompleted();
-                        return HomePage();
-                      } else {
-                        return PersonalInformation();
-                      }
+                    // El usuario existe en Firestore, por lo que puede ir a HomePage
+                    return HomePage();
+                  } else {
+                    // El usuario no existe en Firestore, por lo que necesita completar su información personal
+                    if (_personalInfoCompleted) {
+                      // Si los permisos están concedidos, muestra la pantalla de PersonalInformation
+                      return PersonalInformation();
+                    } else {
+                      // Si los permisos no están concedidos, muestra una pantalla de carga o un mensaje de espera
+                      return CircularProgressIndicator(); // Puedes personalizar esto según tu diseño
                     }
                   }
-
-                  if (_personalInfoCompleted) {
-                    return HomePage();
-                  }
-
-                  return logandsign();
                 },
               );
             }
           }
+          // No hay usuario autenticado
           return logandsign();
         },
       ),

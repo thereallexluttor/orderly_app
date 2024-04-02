@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:orderly_app/HomePage/HomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PersonalInformation extends StatefulWidget {
   const PersonalInformation({Key? key}) : super(key: key);
@@ -24,7 +25,18 @@ class _PersonalInformationState extends State<PersonalInformation> {
   @override
   void initState() {
     super.initState();
+    _requestLocationPermission();
     _getUserLocation();
+  }
+
+  void _requestLocationPermission() async {
+    if (await Permission.location.isGranted) {
+      return;
+    }
+    final status = await Permission.location.request();
+    if (status != PermissionStatus.granted) {
+      // Handle the situation when the user doesn't grant permission
+    }
   }
 
   @override

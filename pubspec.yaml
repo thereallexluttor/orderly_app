@@ -51,6 +51,8 @@ dependencies:
   google_maps_flutter: ^2.6.0
   image: ^4.1.7
   flutter_polyline_points: ^2.0.0
+  simple_barcode_scanner: ^0.1.1
+  firebase_database: ^10.5.0
 
 dev_dependencies:
   flutter_test:

@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:permission_handler/permission_handler.dart'; // Importa el paquete de manejo de permisos
+import 'dart:async';
 
 class logandsign extends StatelessWidget {
   const logandsign({Key? key});
@@ -77,36 +76,40 @@ class logandsign extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      signInWithGoogle();
+                    onPressed: () async {
+                      // Solicitar permiso de ubicación
+                      if (await Permission.location.isGranted) {
+                        signInWithGoogle();
+                      } else {
+                        await Permission.location.request();
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       fixedSize: const Size(260, 33),
                       elevation: 0,
-                      side:
-                          const BorderSide(color: Color.fromARGB(255, 165, 165, 165)),
+                      side: const BorderSide(color: Color.fromARGB(255, 165, 165, 165)),
                     ),
-                    child: const Row(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center, // Centra el texto horizontalmente
                       children: [
-                        // La imagen del botón
-                        Image(
-                          image: AssetImage('lib/images/icons/google.png'),
-                          width: 17, // Ajusta el tamaño según sea necesario
-                          height: 25,
+                        // Agrega un padding a la izquierda de la imagen
+                        Padding(
+                          padding: const EdgeInsets.only(left: 5.0), // Ajusta el valor según sea necesario
+                          child: Image(
+                            image: AssetImage('lib/images/icons/google.png'),
+                            width: 17, // Ajusta el tamaño según sea necesario
+                            height: 25,
+                          ),
                         ),
-
                         // Agrega un espacio entre la imagen y el texto
-
+                        const SizedBox(width: 5), // Ajusta el valor según sea necesario
                         // El texto que deseas agregar al botón
-                        Center(
-                          child: Text(
-                            'Iniciar sesión con Google',
-                            style: TextStyle(
-                              // Define el estilo del texto según tus preferencias
-                              fontSize: 11,
-                              color: Colors.black,
-                              fontFamily: "Poppins-L",
-                            ),
+                        Text(
+                          'Iniciar sesión con Google',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.black,
+                            fontFamily: "Poppins-L",
                           ),
                         ),
                       ],
@@ -133,19 +136,8 @@ class logandsign extends StatelessWidget {
     // ignore: avoid_print
     print(userCredential.user?.displayName);
 
-    // Crear un usuario en Firestore
-    if (userCredential.user != null) {
-      FirebaseFirestore.instance
-          .collection('Orderly')
-          .doc('Users')
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'displayName': userCredential.user!.displayName,
-        'email': userCredential.user!.email,
-        // Puedes agregar más campos aquí si lo deseas
-      });
-    }
+  
+   
   }
 }
 
