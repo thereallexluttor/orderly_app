@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class QR_Scanner extends StatefulWidget {
@@ -13,18 +11,21 @@ class QR_Scanner extends StatefulWidget {
 
 class _QR_ScannerState extends State<QR_Scanner> {
   String result = "";
+  String useruid = "";
+  String photoUrl = "";
 
   @override
   void initState() {
     super.initState();
-    // Iniciar la exploración de QR al cargar la pantalla
-    //_startQRScan();
     _startQRScan2();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('QR Scanner'),
+      ),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -36,57 +37,25 @@ class _QR_ScannerState extends State<QR_Scanner> {
     );
   }
 
-  void _startQRScan2() async{
+  void _startQRScan2() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userData = await FirebaseFirestore.instance.collection('Orderly').doc('Users').collection('users').doc(user.uid).get();
+      photoUrl = userData['photo'] as String;
+      useruid = user.uid;
+    }
     setState(() {
-      result = "/Orderly/restaurantes/restaurantes/El corral/mesas/1";
+      result = "/Orderly/restaurantes/restaurantes/El corral/mesas/1/participantes/participantes";
       List<String> parts = _processQR(result);
-            String rutaHastaMesas = parts[0];
-            String itemDespuesDeMesas = parts[1];
-            // Agregar un nuevo campo a la mesa con algún valor
-            _addNewFieldToMesa(rutaHastaMesas, itemDespuesDeMesas, "nuevo_campo", "valooorr");
-            // Navegar a la pantalla MENU() y pasar el resultado escaneado como parámetro
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MENU(result)));
+      String rutaHastaMenu = parts[0];
+      String rutaHastaMesas = parts[1];
+      String itemDespuesDeMesas = parts[2];
+      String RestaurantName = parts[3];
+      _addNewFieldToMesa(rutaHastaMesas, itemDespuesDeMesas, useruid, photoUrl);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MENU(result, photoUrl, rutaHastaMenu, RestaurantName)));
     });
   }
 
-  // Método para iniciar la exploración de QR----- MEter luego en cell fijo.
-  void _startQRScan() async {
-    // Verificar si ya se han concedido los permisos
-    var status = await Permission.camera.status;
-    if (status.isGranted) {
-      // Si ya se concedieron los permisos, abrir el escáner de códigos QR
-      var res = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SimpleBarcodeScannerPage(),
-        ),
-      );
-      setState(() {
-        if (res is String) {
-          result = res; // Guardar el resultado escaneado en la variable result
-          if (_isValidQR(res)) {
-            // Si el código QR es válido, procesar la ruta y el ítem después de "mesas"
-            List<String> parts = _processQR(res);
-            String rutaHastaMesas = parts[0];
-            String itemDespuesDeMesas = parts[1];
-            // Agregar un nuevo campo a la mesa con algún valor
-            _addNewFieldToMesa(rutaHastaMesas, itemDespuesDeMesas, "nuevo_campo", "valor");
-            // Navegar a la pantalla MENU() y pasar el resultado escaneado como parámetro
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MENU(result)));
-          } else {
-            // Si el código QR no es válido, mostrar un mensaje
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('El código QR no es válido. Debe contener al menos 6 "/".'),
-              ),
-            );
-          }
-        }
-      });
-    } 
-  }
-
-  // Método para agregar un nuevo campo a la mesa en la base de datos Firestore
   void _addNewFieldToMesa(String rutaHastaMesas, String itemDespuesDeMesas, String nuevoCampo, String valor) async {
     await FirebaseFirestore.instance.collection(rutaHastaMesas).doc(itemDespuesDeMesas).update({
       nuevoCampo: valor,
@@ -97,78 +66,181 @@ class _QR_ScannerState extends State<QR_Scanner> {
     });
   }
 
-  // Método para verificar si el código QR es válido (contiene al menos 6 "/")
   bool _isValidQR(String qrText) {
     return qrText.split("/").length >= 6;
   }
 
-  // Método para procesar el código QR y dividir el texto hasta "mesas"
   List<String> _processQR(String qrText) {
     List<String> parts = qrText.split("mesas");
+    List<String> parts2 = qrText.split("/");
+    String rutaMenu = parts[0] + "menu";
     String rutaHastaMesas = parts[0] + "mesas";
+    int indexRestaurants = parts2.indexOf("restaurantes");
+    int indexMesas = parts2.indexOf("mesas");
+    String RestaurantName = parts2.sublist(indexRestaurants + 2, indexMesas).join(" ");
     String itemDespuesDeMesas = parts.length > 1 ? parts[1] : "";
-    return [rutaHastaMesas, itemDespuesDeMesas];
+    return [rutaMenu, rutaHastaMesas, itemDespuesDeMesas, RestaurantName];
   }
 }
 
 class MENU extends StatelessWidget {
+  final String MenuUrl;
   final String scannedResult;
+  final String photoUrl;
+  final String RestaurantName;
 
-  MENU(this.scannedResult);
+  MENU(this.scannedResult, this.photoUrl, this.MenuUrl, this.RestaurantName);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Menú'),
+        automaticallyImplyLeading: false,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Image(
+              image: AssetImage("lib/images/logos/orderly_icon3.png"),
+              height: 60,
+              width: 110,
+            ),
+            CircleAvatar(
+              backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : AssetImage("lib/images/logos/default_avatar.png") as ImageProvider,
+            ),
+          ],
+        ),
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection("/Orderly/restaurantes/restaurantes/El corral/menu").snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          final docs = snapshot.data?.docs ?? [];
-          final tipoProductos = _extractTipoProductos(docs);
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: 150,
+            child: Center(
+              child: Card(
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(70),
+                ),
+                child: StreamBuilder(
+                  stream: FirebaseFirestore.instance.collection('Orderly').doc('restaurantes').collection('restaurantes').doc(RestaurantName).snapshots(),
+                  builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Error: ${snapshot.error}'),
+                      );
+                    }
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: tipoProductos.map((tipoProducto){
-                final productos = _filterProductosByTipo(docs, tipoProducto);
-                return _buildTipoProductoColumn(tipoProducto, productos);
-              }).toList()
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
 
-            )
-          );
-        },
-      )
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    final imageUrl = data['url'] as String;
+
+                    return ClipOval(
+                      child: Image.network(
+                        imageUrl,
+                        width: 150,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text(
+              RestaurantName,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder(
+              stream: FirebaseFirestore.instance.collection(MenuUrl).snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  );
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                final docs = snapshot.data!.docs;
+                final tipoProductos = _extractTipoProductos(docs);
+
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: tipoProductos.map((tipoProducto){
+                      final productos = _filterProductosByTipo(docs, tipoProducto);
+                      return _buildTipoProductoColumn(tipoProducto, productos);
+                    }).toList()
+
+                  )
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  // Construir una columna para un tipo de producto
   Widget _buildTipoProductoColumn(String tipoProducto, List<QueryDocumentSnapshot> productos) {
     return SizedBox(
-      width: 300, // Ancho fijo para la columna
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            tipoProducto,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      width: 300,
+      child: Card(
+        margin: EdgeInsets.all(10),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tipoProducto,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal, fontFamily: 'Poppins', color: Color.fromARGB(255, 193, 43, 212)),
+              ),
+              SizedBox(height: 10),
+              Column(
+                children: productos.map((producto) {
+                  return Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: ListTile(
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.network(
+                          producto['url'] as String,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      title: Text(producto['NOMBRE_DEL_PRODUCTO'] as String, style: TextStyle(fontFamily: 'Poppins', fontSize: 13)),
+                      subtitle: Text('\$${producto['precio']}', style: TextStyle(fontFamily: 'Poppins', fontSize: 11)),
+                      onTap: () {
+                        // Implementa la lógica para manejar el tap en el producto si es necesario
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-          SizedBox(height: 10),
-          Column(
-            children: productos.map((producto) {
-              return ListTile(
-                leading: Image.network(producto['url'] as String),
-                title: Text(producto['NOMBRE_DEL_PRODUCTO'] as String),
-                subtitle: Text('\$${producto['precio']}'),
-                onTap: () {
-                  // Implementa la lógica para manejar el tap en el producto si es necesario
-                },
-              );
-            }).toList(),
-          ),
-          SizedBox(height: 20),
-        ],
+        ),
       ),
     );
   }
@@ -186,5 +258,23 @@ class MENU extends StatelessWidget {
     String tipoProducto,
   ) {
     return docs.where((doc) => doc['TIPO_PRODUCTO'] == tipoProducto).toList();
+  }
+}
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: QR_Scanner(),
+    );
   }
 }

@@ -200,6 +200,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  
   List<QueryDocumentSnapshot> _allRestaurantesData = [];
   Position? _currentPosition;
   final ScrollController _scrollController = ScrollController();
@@ -269,6 +270,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
