@@ -48,7 +48,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
           color: const Color.fromRGBO(255, 255, 255, 1),
           shadowColor: Colors.black,
           margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
-          elevation: 0.3,
+          elevation: 0.2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
           ),
@@ -68,9 +68,11 @@ class _RestauranteItemState extends State<RestauranteItem> {
                   ),
                 ),
               ),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: _buildLocationButton(),
+              Center(
+                child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: _buildLocationButton(),
+                ),
               ),
             ],
           ),
@@ -86,8 +88,8 @@ class _RestauranteItemState extends State<RestauranteItem> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 30,
-            height: 30,
+            width: 25,
+            height: 25,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
@@ -102,7 +104,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
-              iconSize: 20,
+              iconSize: 15,
               icon: const Icon(Icons.location_on, color: Colors.purple),
               onPressed: () {
                 _openGoogleMaps();
@@ -144,7 +146,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
           const SizedBox(width: 10),
           Container(
             height: double.infinity,
-            width: 4,
+            width: 2,
             color: const Color.fromARGB(255, 238, 238, 238),
             margin: const EdgeInsets.symmetric(vertical: 10.0),
           ),
@@ -538,8 +540,8 @@ class _HomePageState extends State<HomePage> {
       children: [
         Container(
           margin: const EdgeInsets.only(left: 10),
-          height: 25, // Ajusta el tamaño del círculo
-          width: 25, // Ajusta el tamaño del círculo
+          height: 28, // Ajusta el tamaño del círculo
+          width: 28, // Ajusta el tamaño del círculo
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white,

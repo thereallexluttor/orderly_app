@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:orderly_app/signin_signup/1stscreen_logandsign.dart';
 import 'package:orderly_app/signin_signup/1stscreen_signin_login.dart';
 import 'firebase_options.dart';
 
