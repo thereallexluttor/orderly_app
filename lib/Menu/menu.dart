@@ -1,23 +1,42 @@
 // ignore_for_file: must_be_immutable, non_constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api
 
 import 'dart:async';
-import 'dart:typed_data';
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter/services.dart';
 
 class ShoppingCart {
-  final List<Map<String, dynamic>> _selectedProducts = [];
+  final Map<String, int> _selectedProducts = {};
   double _totalAmount = 0;
 
-  List<Map<String, dynamic>> get selectedProducts => _selectedProducts;
+  Map<String, int> get selectedProducts => _selectedProducts;
   double get totalAmount => _totalAmount;
 
-  void addToCart(Map<String, dynamic> product) {
-    _selectedProducts.add(product);
-    _totalAmount += (product['precio'] as int).toDouble();
+  set totalAmount(double value) {
+    _totalAmount = value;
+  }
+
+  void addToCart(String productName, double productPrice) {
+    if (_selectedProducts.containsKey(productName)) {
+      _selectedProducts[productName] = _selectedProducts[productName]! + 1;
+    } else {
+      _selectedProducts[productName] = 1;
+    }
+    _totalAmount += productPrice;
+  }
+
+  void removeFromCart(String productName, double productPrice) {
+    if (_selectedProducts.containsKey(productName)) {
+      final currentQuantity = _selectedProducts[productName]!;
+      if (currentQuantity > 1) {
+        _selectedProducts[productName] = currentQuantity - 1;
+        _totalAmount -= productPrice;
+      } else {
+        _selectedProducts.remove(productName);
+        _totalAmount -= productPrice;
+      }
+    }
   }
 
   void clearCart() {
@@ -45,13 +64,18 @@ class _MENUState extends State<MENU> {
   late Future<DocumentSnapshot> _restaurantDataFuture;
   late Future<DocumentSnapshot> _bannersDataFuture;
   late Future<QuerySnapshot> _menuDataFuture;
+  late List<QueryDocumentSnapshot> _menuData; // Variable para almacenar los datos del menú
+  int _cartItemCount = 0;
 
   @override
   void initState() {
     super.initState();
     _restaurantDataFuture = _fetchRestaurantData();
     _bannersDataFuture = _fetchBannersData();
-    _menuDataFuture = _fetchMenuData();
+    _menuDataFuture = _fetchMenuData().then((snapshot) {
+      _menuData = snapshot.docs; // Almacenar los datos del menú cuando estén disponibles
+      return snapshot;
+    });
     _startTimer();
   }
 
@@ -87,21 +111,22 @@ class _MENUState extends State<MENU> {
       body: FutureBuilder(
         future: Future.wait([_restaurantDataFuture, _bannersDataFuture, _menuDataFuture]),
         builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
-          if (snapshot.data == null) {
-  return Center(
-    child: CircularProgressIndicator(),
-  );
-}
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(),
             );
           }
 
-          final restaurantData = snapshot.data![0] as DocumentSnapshot;
-          final bannersData = snapshot.data![1] as DocumentSnapshot;
-          final menuData = snapshot.data![2] as QuerySnapshot;
+          final List<dynamic>? data = snapshot.data;
+          if (data == null || data.isEmpty) {
+            return const Center(
+              child: Text('No data available'),
+            );
+          }
+
+          final restaurantData = data[0] as DocumentSnapshot;
+          final bannersData = data[1] as DocumentSnapshot;
+          final menuData = data[2] as QuerySnapshot;
 
           // Extraer datos de restaurantes
           final imageUrl = restaurantData['url'] as String;
@@ -149,7 +174,7 @@ class _MENUState extends State<MENU> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 0),
               CarouselSlider(
                 items: [
                   Image.network(url1),
@@ -178,10 +203,6 @@ class _MENUState extends State<MENU> {
                   },
                 ),
               ),
-              Text(
-                'Total: \$${_shoppingCart.totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
             ],
           );
         },
@@ -190,7 +211,27 @@ class _MENUState extends State<MENU> {
         onPressed: () {
           _showCart();
         },
-        child: Icon(Icons.shopping_cart),
+        child: Stack(
+          children: [
+            const Icon(Icons.shopping_cart),
+            if (_cartItemCount > 0)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    _cartItemCount.toString(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -247,7 +288,7 @@ class _MENUState extends State<MENU> {
                             width: 150,
                             child: Text(
                               producto['descripcion'] as String,
-                              style: const TextStyle(fontSize: 10, fontFamily: "Poppins-l", color: Colors.grey),
+                              style: const TextStyle(fontSize: 10, fontFamily: "Poppins", color: Colors.grey),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 3,
                             ),
@@ -258,7 +299,7 @@ class _MENUState extends State<MENU> {
                     const SizedBox(height: 0),
                     Text(
                       '\$${producto['precio']}',
-                      style: const TextStyle(fontSize: 12, fontFamily: "Poppins", fontWeight: FontWeight.bold, color: Colors.purple),
+                      style: const TextStyle(fontSize: 12, fontFamily: "Poppins-l", fontWeight: FontWeight.bold, color: Colors.purple),
                     ),
                   ],
                 ),
@@ -268,11 +309,15 @@ class _MENUState extends State<MENU> {
                 right: 190,
                 child: InkWell(
                   onTap: () {
-                    _shoppingCart.addToCart({
-                      'nombre': producto['NOMBRE_DEL_PRODUCTO'] as String,
-                      'precio': (producto['precio'] as int),
+                    _shoppingCart.addToCart(
+                      producto['NOMBRE_DEL_PRODUCTO'] as String,
+                      _getProductPrice(producto['NOMBRE_DEL_PRODUCTO'] as String),
+                    );
+                    setState(() {
+                      _cartItemCount++;
                     });
-                    setState(() {});
+                    // Agregar efecto de vibración
+                    HapticFeedback.vibrate();
                   },
                   child: Container(
                     padding: const EdgeInsets.all(4.0),
@@ -303,32 +348,95 @@ class _MENUState extends State<MENU> {
     showModalBottomSheet<void>(
       context: context,
       builder: (BuildContext context) {
-        return Container(
-          height: 200,
-          color: Colors.white,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Total: \$${_shoppingCart.totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _shoppingCart.clearCart();
-                    Navigator.pop(context);
-                    setState(() {});
-                  },
-                  child: const Text('Clear Cart'),
-                ),
-              ],
-            ),
-          ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              height: 200,
+              color: Colors.white,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: AnimatedList(
+                      key: GlobalKey(),
+                      initialItemCount: _shoppingCart.selectedProducts.length,
+                      itemBuilder: (context, index, animation) {
+                        final productName = _shoppingCart.selectedProducts.keys.toList()[index];
+                        final productQuantity = _shoppingCart.selectedProducts.values.toList()[index];
+                        final productPrice = _getProductPrice(productName);
+                        final totalProductPrice = productPrice * productQuantity;
+
+                        return SizeTransition(
+                          sizeFactor: animation,
+                          child: ListTile(
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('$productName x $productQuantity', style: const TextStyle(fontFamily: "Poppins", fontSize: 10)),
+                                IconButton(
+                                  icon: Icon(Icons.remove_circle),
+                                  onPressed: () {
+                                    _removeItemFromCart(productName, productPrice);
+                                    setState(() {}); // Actualizar la UI al eliminar un producto del carrito
+                                  },
+                                ),
+                              ],
+                            ),
+                            subtitle: Text('Total: \$${totalProductPrice.toStringAsFixed(2)}', style: const TextStyle(fontFamily: "Poppins", fontSize: 12)),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total: \$${_shoppingCart.totalAmount.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            _shoppingCart.clearCart();
+                            setState(() {
+                              _cartItemCount = 0;
+                            });
+                          },
+                          child: const Text('Clear Cart', style: TextStyle(fontFamily: "Poppins")),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
+  }
+
+  void _removeItemFromCart(String productName, double productPrice) {
+    setState(() {
+      _shoppingCart.removeFromCart(productName, productPrice);
+      _cartItemCount--; // Actualizar el contador de elementos del carrito
+    });
+  }
+
+  double _getProductPrice(String productName) {
+    // Buscar el precio del producto por su nombre en los datos del menú
+    final producto = _menuData.firstWhere(
+      (producto) => producto['NOMBRE_DEL_PRODUCTO'] == productName,
+    );
+
+    if (producto != null) {
+      // Si se encontró el producto, retornar su precio como un double
+      return (producto['precio'] as num).toDouble();
+    } else {
+      // Si no se encontró el producto, retornar un precio predeterminado o lanzar una excepción
+      return 0; // Cambiar esto por el valor predeterminado o la lógica que necesites
+    }
   }
 }
 

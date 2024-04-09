@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -280,7 +282,7 @@ class _HomePageState extends State<HomePage> {
         title: const Image(
           image: AssetImage("lib/images/logos/orderly_icon3.png"),
           height: 60,
-          width: 110,
+          width: 60,
         ),
         actions: [
           IconButton(
@@ -297,7 +299,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 0),
+              
               CarouselSlider(
                 options: CarouselOptions(
                   autoPlay: true,
@@ -406,7 +408,7 @@ class _HomePageState extends State<HomePage> {
                     final descripcion = restaurante['descripcion'];
 
                     double distancia = 0.0;
-                    if (_currentPosition != null && gpsPoint != null) {
+                    if (_currentPosition != null) {
                       distancia = Geolocator.distanceBetween(
                         _currentPosition!.latitude,
                         _currentPosition!.longitude,
