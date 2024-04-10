@@ -193,16 +193,17 @@ class _MENUState extends State<MENU> {
                   viewportFraction: 0.8,
                 ),
               ),
-              Expanded(
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
-                  itemCount: menuData.size,
-                  itemBuilder: (context, index) {
-                    final producto = menuData.docs[index];
-                    return _buildProductoCard(producto);
-                  },
-                ),
-              ),
+              // Cambiar esta sección en el método build:
+Expanded(
+  child: ListView.builder(
+    physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
+    itemCount: 1, // Cambiado a 1 porque ahora solo construiremos una columna para todos los elementos
+    itemBuilder: (context, index) {
+      // Retorna el método modificado sin necesidad de pasar producto y manejar dentro del mismo
+      return _buildProductoCard();
+    },
+  ),
+),
             ],
           );
         },
@@ -236,113 +237,133 @@ class _MENUState extends State<MENU> {
     );
   }
 
-  Widget _buildProductoCard(QueryDocumentSnapshot producto) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 1.0)),
-        ),
-        child: Card(
-          elevation: 0,
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          child: Stack(
+  // Este método ya no es necesario, lo eliminaremos
+// List<Widget> _getProductosConPos(String pos) {}
+
+Widget _buildProductoCard() {
+    Map<String, List<QueryDocumentSnapshot>> posGroups = {};
+    for (final producto in _menuData) {
+      String pos = producto['pos'];
+      if (!posGroups.containsKey(pos)) {
+        posGroups[pos] = [];
+      }
+      posGroups[pos]!.add(producto);
+    }
+
+    return Column(
+      children: posGroups.entries.map((entry) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20.0),
-                        border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
-                      ),
-                      child: SizedBox(
-                        width: 150,
-                        height: 180,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20.0),
-                          child: Image.network(
-                            producto['url'] as String,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            producto['NOMBRE_DEL_PRODUCTO'] as String,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: "Poppins-l", fontSize: 11),
-                          ),
-                          const SizedBox(height: 0),
-                          SizedBox(
-                            width: 150,
-                            child: Text(
-                              producto['descripcion'] as String,
-                              style: const TextStyle(fontSize: 10, fontFamily: "Poppins", color: Colors.grey),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 0),
-                    Text(
-                      '\$${producto['precio']}',
-                      style: const TextStyle(fontSize: 12, fontFamily: "Poppins-l", fontWeight: FontWeight.bold, color: Colors.purple),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 190,
-                child: InkWell(
-                  onTap: () {
-                    _shoppingCart.addToCart(
-                      producto['NOMBRE_DEL_PRODUCTO'] as String,
-                      _getProductPrice(producto['NOMBRE_DEL_PRODUCTO'] as String),
-                    );
-                    setState(() {
-                      _cartItemCount++;
-                    });
-                    // Agregar efecto de vibración
-                    HapticFeedback.vibrate();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(4.0),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 247, 253, 246),
-                      borderRadius: BorderRadius.circular(20.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Icon(Icons.add, color: Colors.green[800]),
-                  ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: entry.value.map((producto) => _buildProductoItem(producto)).toList(),
                 ),
               ),
             ],
           ),
-        ),
+        );
+      }).toList(),
+    );
+}
+
+  
+
+  Widget _buildProductoItem(QueryDocumentSnapshot producto) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack( // Utiliza Stack para sobreponer elementos
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20.0),
+                  border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
+                ),
+                child: SizedBox(
+                  width: 150,
+                  height: 180,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: Image.network(
+                      producto['url'] as String,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: 150,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      producto['NOMBRE_DEL_PRODUCTO'] as String,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: "Poppins-l", fontSize: 11),
+                    ),
+                    const SizedBox(height: 0),
+                    SizedBox(
+                      width: 150,
+                      child: Text(
+                        producto['descripcion'] as String,
+                        style: const TextStyle(fontSize: 10, fontFamily: "Poppins", color: Colors.grey),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 0),
+              Text(
+                '\$${producto['precio']}',
+                style: const TextStyle(fontSize: 12, fontFamily: "Poppins-l", fontWeight: FontWeight.bold, color: Colors.purple),
+              ),
+            ],
+          ),
+          Positioned( // Posiciona el botón en la esquina superior derecha
+            top: 0,
+            right: 0,
+            child: InkWell(
+              onTap: () {
+                _shoppingCart.addToCart(
+                  producto['NOMBRE_DEL_PRODUCTO'] as String,
+                  _getProductPrice(producto['NOMBRE_DEL_PRODUCTO'] as String),
+                );
+                setState(() {
+                  _cartItemCount++;
+                });
+                // Agregar efecto de vibración
+                HapticFeedback.vibrate();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4.0),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 247, 253, 246),
+                  borderRadius: BorderRadius.circular(20.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.add, color: Colors.green),
+              ),
+            ),
+          ),
+        ],
       ),
     );
-  }
+}
 
   void _showCart() {
     showModalBottomSheet<void>(
@@ -371,17 +392,17 @@ class _MENUState extends State<MENU> {
                             title: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('$productName x $productQuantity', style: const TextStyle(fontFamily: "Poppins", fontSize: 10)),
+                                Text('$productName x $productQuantity', style: TextStyle(fontFamily: "Poppins", fontSize: 10)),
                                 IconButton(
                                   icon: Icon(Icons.remove_circle),
                                   onPressed: () {
                                     _removeItemFromCart(productName, productPrice);
-                                    setState(() {}); // Actualizar la UI al eliminar un producto del carrito
+                                    setState(() {});
                                   },
                                 ),
                               ],
                             ),
-                            subtitle: Text('Total: \$${totalProductPrice.toStringAsFixed(2)}', style: const TextStyle(fontFamily: "Poppins", fontSize: 12)),
+                            subtitle: Text('Total: \$${totalProductPrice.toStringAsFixed(2)}', style: TextStyle(fontFamily: "Poppins", fontSize: 12)),
                           ),
                         );
                       },
@@ -394,7 +415,7 @@ class _MENUState extends State<MENU> {
                       children: [
                         Text(
                           'Total: \$${_shoppingCart.totalAmount.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
                         ),
                         ElevatedButton(
                           onPressed: () {
@@ -420,22 +441,19 @@ class _MENUState extends State<MENU> {
   void _removeItemFromCart(String productName, double productPrice) {
     setState(() {
       _shoppingCart.removeFromCart(productName, productPrice);
-      _cartItemCount--; // Actualizar el contador de elementos del carrito
+      _cartItemCount--;
     });
   }
 
   double _getProductPrice(String productName) {
-    // Buscar el precio del producto por su nombre en los datos del menú
     final producto = _menuData.firstWhere(
       (producto) => producto['NOMBRE_DEL_PRODUCTO'] == productName,
     );
 
-    if (producto != null) {
-      // Si se encontró el producto, retornar su precio como un double
-      return (producto['precio'] as num).toDouble();
+    if (producto != null && producto['precio'] is num) {
+      return producto['precio'].toDouble();
     } else {
-      // Si no se encontró el producto, retornar un precio predeterminado o lanzar una excepción
-      return 0; // Cambiar esto por el valor predeterminado o la lógica que necesites
+      return 0;
     }
   }
 }

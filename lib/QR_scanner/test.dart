@@ -1,170 +1,181 @@
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Menu App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+  Widget _buildProductoCard(QueryDocumentSnapshot producto) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 1.0)),
+        ),
+        child: Card(
+          elevation: 0,
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20.0),
+                        border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
+                      ),
+                      child: SizedBox(
+                        width: 150,
+                        height: 180,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20.0),
+                          child: Image.network(
+                            producto['url'] as String,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            producto['NOMBRE_DEL_PRODUCTO'] as String,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: "Poppins-l", fontSize: 11),
+                          ),
+                          const SizedBox(height: 0),
+                          SizedBox(
+                            width: 150,
+                            child: Text(
+                              producto['descripcion'] as String,
+                              style: const TextStyle(fontSize: 10, fontFamily: "Poppins", color: Colors.grey),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 0),
+                    Text(
+                      '\$${producto['precio']}',
+                      style: const TextStyle(fontSize: 12, fontFamily: "Poppins-l", fontWeight: FontWeight.bold, color: Colors.purple),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 190,
+                child: InkWell(
+                  onTap: () {
+                    _shoppingCart.addToCart(
+                      producto['NOMBRE_DEL_PRODUCTO'] as String,
+                      _getProductPrice(producto['NOMBRE_DEL_PRODUCTO'] as String),
+                    );
+                    setState(() {
+                      _cartItemCount++;
+                    });
+                    // Agregar efecto de vibración
+                    HapticFeedback.vibrate();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4.0),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 247, 253, 246),
+                      borderRadius: BorderRadius.circular(20.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Icon(Icons.add, color: Colors.green[800]),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      home: QR_Scanner(),
     );
   }
-}
 
-class QR_Scanner extends StatefulWidget {
-  const QR_Scanner({Key? key}) : super(key: key);
 
-  @override
-  State<QR_Scanner> createState() => _QR_ScannerState();
-}
 
-class _QR_ScannerState extends State<QR_Scanner> {
-  String result = "";
 
-  @override
-  void initState() {
-    super.initState();
-    // Iniciar la exploración de QR al cargar la pantalla
-    _startQRScan2();
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
+
+    Widget _buildProductoItem(QueryDocumentSnapshot producto) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Container(
+        width: 150,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Resultado del código de barras: $result"),
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+              child: Image.network(
+                producto['url'] as String,
+                height: 100,
+                width: 150,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    producto['NOMBRE_DEL_PRODUCTO'] as String,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    producto['descripcion'] as String,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  Text(
+                    '\$${producto['precio']}',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
+                  ),
+                ],
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                _shoppingCart.addToCart(
+                  producto['NOMBRE_DEL_PRODUCTO'] as String,
+                  _getProductPrice(producto['NOMBRE_DEL_PRODUCTO'] as String),
+                );
+                setState(() {
+                  _cartItemCount++;
+                });
+                HapticFeedback.vibrate();
+              },
+              child: Container(
+                width: double.infinity,
+                alignment: Alignment.center,
+                color: Colors.green,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'Add to Cart',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-
-  void _startQRScan2() async{
-    setState(() {
-      result = "/Orderly/restaurantes/restaurantes/El corral/mesas/1";
-      List<String> parts = _processQR(result);
-      String rutaHastaMesas = parts[0];
-      String itemDespuesDeMesas = parts[1];
-      // Agregar un nuevo campo a la mesa con algún valor
-      _addNewFieldToMesa(rutaHastaMesas, itemDespuesDeMesas, "nuevo_campo", "valooorr");
-      // Navegar a la pantalla MENU() y pasar el resultado escaneado como parámetro
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MENU(result)));
-    });
-  }
-
-  // Método para agregar un nuevo campo a la mesa en la base de datos Firestore
-  void _addNewFieldToMesa(String rutaHastaMesas, String itemDespuesDeMesas, String nuevoCampo, String valor) async {
-    await FirebaseFirestore.instance.collection(rutaHastaMesas).doc(itemDespuesDeMesas).update({
-      nuevoCampo: valor,
-    }).then((_) {
-      print("Nuevo campo agregado correctamente a la mesa $itemDespuesDeMesas");
-    }).catchError((error) {
-      print("Error al agregar el nuevo campo: $error");
-    });
-  }
-
-  // Método para verificar si el código QR es válido (contiene al menos 6 "/")
-  bool _isValidQR(String qrText) {
-    return qrText.split("/").length >= 6;
-  }
-
-  // Método para procesar el código QR y dividir el texto hasta "mesas"
-  List<String> _processQR(String qrText) {
-    List<String> parts = qrText.split("mesas");
-    String rutaHastaMesas = parts[0] + "mesas";
-    String itemDespuesDeMesas = parts.length > 1 ? parts[1] : "";
-    return [rutaHastaMesas, itemDespuesDeMesas];
-  }
-}
-
-class MENU extends StatelessWidget {
-  final String scannedResult;
-
-  MENU(this.scannedResult);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Menú'),
-      ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection(scannedResult).snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final docs = snapshot.data?.docs ?? [];
-          final tipoProductos = _extractTipoProductos(docs);
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: tipoProductos.map((tipoProducto) {
-                final productos = _filterProductosByTipo(docs, tipoProducto);
-                return _buildTipoProductoColumn(tipoProducto, productos);
-              }).toList(),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // Extraer los tipos de productos únicos de los documentos
-  List<String> _extractTipoProductos(List<QueryDocumentSnapshot> docs) {
-    final tipoProductosSet = <String>{};
-    for (final doc in docs) {
-      tipoProductosSet.add(doc['TIPO_PRODUCTO'] as String);
-    }
-    return tipoProductosSet.toList();
-  }
-
-  // Filtrar los productos por tipo de producto
-  List<QueryDocumentSnapshot> _filterProductosByTipo(
-    List<QueryDocumentSnapshot> docs,
-    String tipoProducto,
-  ) {
-    return docs.where((doc) => doc['TIPO_PRODUCTO'] == tipoProducto).toList();
-  }
-
-  // Construir una columna para un tipo de producto
-  Widget _buildTipoProductoColumn(String tipoProducto, List<QueryDocumentSnapshot> productos) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          tipoProducto,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 10),
-        Column(
-          children: productos.map((producto) {
-            return ListTile(
-              leading: Image.network(producto['url'] as String),
-              title: Text(producto['NOMBRE_DEL_PRODUCTO'] as String),
-              subtitle: Text('\$${producto['precio']}'),
-              onTap: () {
-                // Implementa la lógica para manejar el tap en el producto si es necesario
-              },
-            );
-          }).toList(),
-        ),
-        SizedBox(height: 20),
-      ],
-    );
-  }
-}
