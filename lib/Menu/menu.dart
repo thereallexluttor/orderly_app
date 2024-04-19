@@ -1,36 +1,77 @@
-// ignore_for_file: must_be_immutable, non_constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api
+// ignore_for_file: must_be_immutable, non_constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, avoid_print
 
 import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+class OrderDetails {
+  final String firebaseuid;
+  final String OrderUrl;
+  final String photouser;
+  final String productName;
+  final String description;
+  final String imageUrl;
+  final int price;
+  final List<AdditionalItem> selectedAdditionals;
+
+  OrderDetails({
+    required this.firebaseuid,
+    required this.OrderUrl,
+    required this.photouser,
+    required this.productName,
+    required this.description,
+    required this.imageUrl,
+    required this.price,
+    required this.selectedAdditionals,
+  });
+}
+
+class AdditionalItem {
+  final String name;
+  final int price;
+  final String photo;
+
+  AdditionalItem({
+    required this.name,
+    required this.price,
+    required this.photo
+  });
+}
+
+
+class ProductItem {
+  int quantity;
+  double price;
+  String imageUrl;
+  String aditionals;
+
+  ProductItem({required this.quantity, required this.price, required this.imageUrl, required this.aditionals});
+}
+
 class ShoppingCart {
-  final Map<String, int> _selectedProducts = {};
+  final Map<String, ProductItem> _selectedProducts = {};
   double _totalAmount = 0;
 
-  Map<String, int> get selectedProducts => _selectedProducts;
+  Map<String, ProductItem> get selectedProducts => _selectedProducts;
   double get totalAmount => _totalAmount;
 
-  set totalAmount(double value) {
-    _totalAmount = value;
-  }
-
-  void addToCart(String productName, double productPrice) {
+  void addToCart(String productName, double productPrice, String imageUrl, String aditionals) {
     if (_selectedProducts.containsKey(productName)) {
-      _selectedProducts[productName] = _selectedProducts[productName]! + 1;
+      _selectedProducts[productName]!.quantity += 1;
     } else {
-      _selectedProducts[productName] = 1;
+      _selectedProducts[productName] = ProductItem(quantity: 1, price: productPrice, imageUrl: imageUrl, aditionals: aditionals);
     }
     _totalAmount += productPrice;
   }
 
   void removeFromCart(String productName, double productPrice) {
     if (_selectedProducts.containsKey(productName)) {
-      final currentQuantity = _selectedProducts[productName]!;
+      final currentQuantity = _selectedProducts[productName]!.quantity;
       if (currentQuantity > 1) {
-        _selectedProducts[productName] = currentQuantity - 1;
+        _selectedProducts[productName]!.quantity -= 1;
         _totalAmount -= productPrice;
       } else {
         _selectedProducts.remove(productName);
@@ -66,6 +107,10 @@ class _MENUState extends State<MENU> {
   late Future<QuerySnapshot> _menuDataFuture;
   late List<QueryDocumentSnapshot> _menuData; // Variable para almacenar los datos del menú
   int _cartItemCount = 0;
+  bool _isFirstTimeOpen = true;
+
+  // Definir _selectedAdicionals para almacenar los adicionales seleccionados
+  List<String> _selectedAdicionals = [];
 
   @override
   void initState() {
@@ -128,11 +173,9 @@ class _MENUState extends State<MENU> {
           final bannersData = data[1] as DocumentSnapshot;
           final menuData = data[2] as QuerySnapshot;
 
-          // Extraer datos de restaurantes
           final imageUrl = restaurantData['url'] as String;
           widget.ResDescription = restaurantData['descripcion'] as String;
 
-          // Extraer datos de banners
           final url1 = bannersData['url1'] as String;
           final url2 = bannersData['url2'] as String;
           final url3 = bannersData['url3'] as String;
@@ -150,7 +193,21 @@ class _MENUState extends State<MENU> {
                       onTap: () {
                         Navigator.pop(context);
                       },
-                      child: const Icon(Icons.arrow_back),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 0.2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          size: 25,
+                        ),
+                      ),
                     ),
                     Row(
                       children: [
@@ -193,17 +250,15 @@ class _MENUState extends State<MENU> {
                   viewportFraction: 0.8,
                 ),
               ),
-              // Cambiar esta sección en el método build:
-Expanded(
-  child: ListView.builder(
-    physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
-    itemCount: 1, // Cambiado a 1 porque ahora solo construiremos una columna para todos los elementos
-    itemBuilder: (context, index) {
-      // Retorna el método modificado sin necesidad de pasar producto y manejar dentro del mismo
-      return _buildProductoCard();
-    },
-  ),
-),
+              Expanded(
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
+                  itemCount: 1,
+                  itemBuilder: (context, index) {
+                    return _buildProductoCard();
+                  },
+                ),
+              ),
             ],
           );
         },
@@ -220,7 +275,7 @@ Expanded(
                 top: 0,
                 right: 0,
                 child: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     color: Colors.red,
                     shape: BoxShape.circle,
@@ -237,26 +292,34 @@ Expanded(
     );
   }
 
-  // Este método ya no es necesario, lo eliminaremos
-// List<Widget> _getProductosConPos(String pos) {}
-
-Widget _buildProductoCard() {
-    Map<String, List<QueryDocumentSnapshot>> posGroups = {};
+  Widget _buildProductoCard() {
+    Map<String, List<QueryDocumentSnapshot>> categoryGroups = {};
     for (final producto in _menuData) {
-      String pos = producto['pos'];
-      if (!posGroups.containsKey(pos)) {
-        posGroups[pos] = [];
+      String categoria = producto['TIPO_PRODUCTO'] as String;
+      if (!categoryGroups.containsKey(categoria)) {
+        categoryGroups[categoria] = [];
       }
-      posGroups[pos]!.add(producto);
+      categoryGroups[categoria]!.add(producto);
     }
 
     return Column(
-      children: posGroups.entries.map((entry) {
+      children: categoryGroups.entries.map((entry) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  entry.key,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    fontFamily: "Poppins-l"
+                  ),
+                ),
+              ),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -268,14 +331,12 @@ Widget _buildProductoCard() {
         );
       }).toList(),
     );
-}
-
-  
+  }
 
   Widget _buildProductoItem(QueryDocumentSnapshot producto) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Stack( // Utiliza Stack para sobreponer elementos
+      child: Stack(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,20 +388,12 @@ Widget _buildProductoCard() {
               ),
             ],
           ),
-          Positioned( // Posiciona el botón en la esquina superior derecha
+          Positioned(
             top: 0,
             right: 0,
             child: InkWell(
               onTap: () {
-                _shoppingCart.addToCart(
-                  producto['NOMBRE_DEL_PRODUCTO'] as String,
-                  _getProductPrice(producto['NOMBRE_DEL_PRODUCTO'] as String),
-                );
-                setState(() {
-                  _cartItemCount++;
-                });
-                // Agregar efecto de vibración
-                HapticFeedback.vibrate();
+                _showAditionalsScreen(producto['adiciones'], producto);
               },
               child: Container(
                 padding: const EdgeInsets.all(4.0),
@@ -363,99 +416,536 @@ Widget _buildProductoCard() {
         ],
       ),
     );
+  }
+
+
+
+List<OrderDetails> orders = [];
+
+void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
+    String nombreOrden = orden['NOMBRE_DEL_PRODUCTO'] as String;
+    String descripcionOrden = orden['descripcion'] as String;
+    int precioOrden = orden['precio'] as int;
+    String urlOrden = orden['url'] as String;
+
+    // Inicializar el precio total con el precio base de la orden
+    double precioTotal = precioOrden.toDouble();
+
+    // Variable específica para cada pantalla para almacenar los elementos seleccionados
+    Set<String> _selectedAditionals = {};
+
+    FirebaseFirestore.instance.collection(producto).get().then((querySnapshot) {
+        Map<String, List<DocumentSnapshot>> categorias = {};
+        querySnapshot.docs.forEach((doc) {
+            String status = doc['status'];
+            if (!categorias.containsKey(status)) {
+                categorias[status] = [];
+            }
+            categorias[status]!.add(doc);
+        });
+
+        showModalBottomSheet<void>(
+            context: context,
+            builder: (BuildContext context) {
+                return StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setState) {
+                        return Stack(
+                            children: [
+                                SingleChildScrollView(
+                                    child: Container(
+                                        padding: EdgeInsets.all(20),
+                                        decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(20),
+                                                topRight: Radius.circular(20),
+                                            ),
+                                            color: Colors.white,
+                                        ),
+                                        child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                                SizedBox(height: 10),
+                                                // Detalles de la orden
+                                                Text(
+                                                    'Detalles de la orden:',
+                                                    style: TextStyle(
+                                                        fontSize: 14 * MediaQuery.of(context).textScaleFactor,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontFamily: "Poppins-l",
+                                                    ),
+                                                ),
+                                                SizedBox(height: 10),
+                                                // Foto de la orden
+                                                Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                        Container(
+                                                            width: MediaQuery.of(context).size.width * 0.25,
+                                                            height: MediaQuery.of(context).size.width * 0.25,
+                                                            margin: EdgeInsets.only(right: 10),
+                                                            decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius.circular(10),
+                                                                image: DecorationImage(
+                                                                    image: NetworkImage(urlOrden),
+                                                                    fit: BoxFit.cover,
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        Expanded(
+                                                            child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                    // Descripción de la orden
+                                                                    Text(
+                                                                        'Descripción: $descripcionOrden',
+                                                                        style: TextStyle(
+                                                                            fontSize: 11 * MediaQuery.of(context).textScaleFactor,
+                                                                            fontFamily: "Poppins",
+                                                                        ),
+                                                                    ),
+                                                                    SizedBox(height: 10),
+                                                                    // Precio unitario de la orden
+                                                                    Text(
+                                                                        'Precio unitario: \$${precioOrden.toStringAsFixed(2)}',
+                                                                        style: TextStyle(
+                                                                            fontSize: 12 * MediaQuery.of(context).textScaleFactor,
+                                                                            fontFamily: "Poppins-l",
+                                                                        ),
+                                                                    ),
+                                                                ],
+                                                            ),
+                                                        ),
+                                                    ],
+                                                ),
+                                                SizedBox(height: 20),
+                                                // Selección de productos adicionales
+                                                Text(
+                                                    'Selecciona los adicionales para $nombreOrden',
+                                                    style: TextStyle(
+                                                        fontSize: 14 * MediaQuery.of(context).textScaleFactor,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontFamily: "Poppins-l",
+                                                    ),
+                                                ),
+                                                SizedBox(height: 20),
+                                                Column(
+                                                    children: [
+                                                        for (final category in categorias.entries)
+                                                            Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                    SizedBox(height: 10),
+                                                                    Text(
+                                                                        '${category.key}',
+                                                                        style: TextStyle(
+                                                                            fontSize: 14 * MediaQuery.of(context).textScaleFactor,
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontFamily: "Poppins-l",
+                                                                        ),
+                                                                    ),
+                                                                    SizedBox(height: 5),
+                                                                    ...category.value.map((adicional) {
+                                                                        return _buildAdditionalTile(adicional, (int precioAdicional, bool selected) {
+                                                                            setState(() {
+                                                                                if (selected) {
+                                                                                    precioTotal += precioAdicional;
+                                                                                    _selectedAditionals.add(adicional['nombre']);
+                                                                                } else {
+                                                                                    precioTotal -= precioAdicional;
+                                                                                    _selectedAditionals.remove(adicional['nombre']);
+                                                                                }
+                                                                            });
+                                                                        }, _selectedAditionals.contains(adicional['nombre']));
+                                                                    }).toList(),
+                                                                ],
+                                                            ),
+                                                    ],
+                                                ),
+                                                SizedBox(height: 50),
+                                            ],
+                                        ),
+                                    ),
+                                ),
+                                Positioned(
+                                    bottom: 10,
+                                    left: 20,
+                                    right: 20,
+                                    child: GestureDetector(
+                                        onTap: () async {
+                                            // Lógica para agregar la orden a Firestore
+                                            List<String> urlSegments = widget.scannedResult.split("/");
+
+                                            String firestorepath1 = "/"+urlSegments[1] +"/"+urlSegments[2] +"/"+ urlSegments[3]+"/"+urlSegments[4] +"/"+urlSegments[5]+"/"+urlSegments[6] +"/"+urlSegments[7];
+                                            String firestorepath2 = urlSegments[8];
+                                            String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
+
+                                            final userOrderRef = FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2);
+
+                                            Map<String, dynamic> orderData = {
+                                                'OrderUrl': widget.scannedResult,
+                                                'photouser': widget.photoUrl,
+                                                'productName': nombreOrden,
+                                                'description': descripcionOrden,
+                                                'imageUrl': urlOrden,
+                                                'price': precioTotal,
+                                                'selectedAdditionals': _selectedAditionals.map((ad) {
+                                                    return {
+                                                        'name': ad,
+                                                        'price': categorias.values.expand((el) => el).firstWhere((item) => item['nombre'] == ad)['precio'],
+                                                        'photo': categorias.values.expand((el) => el).firstWhere((item) => item['nombre'] == ad)['url'] as String,
+                                                    };
+                                                }).toList(),
+                                            };
+
+                                            // Guardar la orden en Firestore
+                                            userOrderRef.update({
+                                                firebaseuid: FieldValue.arrayUnion([orderData])
+                                            }).then((_) {
+                                                print('La orden se ha guardado correctamente en Firestore.');
+                                            }).catchError((error) {
+                                                print('Error al guardar la orden en Firestore: $error');
+                                            });
+
+                                            // Limpiar elementos seleccionados y precio total
+                                            setState(() {
+                                                _selectedAditionals.clear();
+                                                precioTotal = precioOrden.toDouble();
+                                            });
+
+                                            // Cerrar la pantalla de selección de adicionales
+                                            Navigator.pop(context);
+                                        },
+                                        child: Container(
+                                            width: MediaQuery.of(context).size.width * 0.9,
+                                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                            decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(12),
+                                                color: Colors.purple,
+                                                boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.grey.withOpacity(0.5),
+                                                        spreadRadius: 2,
+                                                        blurRadius: 5,
+                                                        offset: Offset(0, 3),
+                                                    ),
+                                                ],
+                                            ),
+                                            child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                    Expanded(
+                                                        child: Text(
+                                                            'Agregar a la orden',
+                                                            style: TextStyle(
+                                                                fontFamily: "Poppins-l",
+                                                                fontSize: 10 * MediaQuery.of(context).textScaleFactor,
+                                                                color: Colors.white,
+                                                                overflow: TextOverflow.ellipsis, // Para manejar texto largo
+                                                            ),
+                                                        ),
+                                                    ),
+                                                    Text(
+                                                        '\$${precioTotal.toStringAsFixed(2)}',
+                                                        style: TextStyle(
+                                                            fontFamily: "Poppins-l",
+                                                            fontSize: 10 * MediaQuery.of(context).textScaleFactor,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: Colors.white,
+                                                        ),
+                                                    ),
+                                                ],
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ],
+                        );
+                    },
+                );
+            },
+        );
+    });
 }
 
-  void _showCart() {
+Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSelectionChanged, bool isSelected) {
+  return Container(
+    margin: EdgeInsets.symmetric(vertical: 5),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(10),
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.5),
+          spreadRadius: 2,
+          blurRadius: 5,
+          offset: Offset(0, 3), // changes position of shadow
+        ),
+      ],
+    ),
+    child: ListTile(
+      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          adicional['url'] as String,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+        ),
+      ),
+      title: Text(
+        adicional['nombre'] as String,
+        style: TextStyle(
+          fontFamily: "Poppins-l",
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      subtitle: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '\$${adicional['precio']}',
+            style: TextStyle(
+              fontFamily: "Poppins-l",
+              fontSize: 12,
+              color: Colors.grey[700],
+            ),
+          ),
+          Checkbox(
+            value: isSelected,
+            onChanged: (value) {
+              onSelectionChanged(adicional['precio'], value!);
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
+void _showCart() {
+    List<String> urlSegments = widget.scannedResult.split("/");
+
+    String firestorepath1 = "/${urlSegments[1]}/${urlSegments[2]}/${urlSegments[3]}/${urlSegments[4]}/${urlSegments[5]}/${urlSegments[6]}/${urlSegments[7]}";
+    String firestorepath2 = urlSegments[8];
+
+    String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
+
     showModalBottomSheet<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              height: 200,
-              color: Colors.white,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: AnimatedList(
-                      key: GlobalKey(),
-                      initialItemCount: _shoppingCart.selectedProducts.length,
-                      itemBuilder: (context, index, animation) {
-                        final productName = _shoppingCart.selectedProducts.keys.toList()[index];
-                        final productQuantity = _shoppingCart.selectedProducts.values.toList()[index];
-                        final productPrice = _getProductPrice(productName);
-                        final totalProductPrice = productPrice * productQuantity;
-
-                        return SizeTransition(
-                          sizeFactor: animation,
-                          child: ListTile(
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('$productName x $productQuantity', style: TextStyle(fontFamily: "Poppins", fontSize: 10)),
-                                IconButton(
-                                  icon: Icon(Icons.remove_circle),
-                                  onPressed: () {
-                                    _removeItemFromCart(productName, productPrice);
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
+        context: context,
+        builder: (BuildContext context) {
+            return StatefulBuilder(
+                builder: (context, setState) {
+                    return Container(
+                        height: 400,
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(25),
+                                topRight: Radius.circular(25),
                             ),
-                            subtitle: Text('Total: \$${totalProductPrice.toStringAsFixed(2)}', style: TextStyle(fontFamily: "Poppins", fontSize: 12)),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Total: \$${_shoppingCart.totalAmount.toStringAsFixed(2)}',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
+                            boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: Offset(0, 3),
+                                ),
+                            ],
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            _shoppingCart.clearCart();
-                            setState(() {
-                              _cartItemCount = 0;
-                            });
-                          },
-                          child: const Text('Clear Cart', style: TextStyle(fontFamily: "Poppins")),
+                        child: FutureBuilder<DocumentSnapshot>(
+                            future: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).get(),
+                            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return Center(child: CircularProgressIndicator());
+                                } else if (snapshot.hasError) {
+                                    return Center(child: Text('Error: ${snapshot.error}'));
+                                } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                                    return Center(child: Text('No se encontraron datos'));
+                                } else {
+                                    final orderData = snapshot.data!.data() as Map<String, dynamic>;
+
+                                    Map<String, List<Map<String, dynamic>>> groupedItems = {};
+
+                                    for (String key in orderData.keys) {
+                                        final itemList = orderData[key];
+
+                                        if (itemList is Iterable) {
+                                            for (var item in itemList) {
+                                                if (item is Map<String, dynamic>) {
+                                                    String photouser = item['photouser'];
+                                                    if (groupedItems.containsKey(photouser)) {
+                                                        groupedItems[photouser]?.add(item);
+                                                    } else {
+                                                        groupedItems[photouser] = [item];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    return Container(
+                                        padding: EdgeInsets.all(10),
+                                        child: ListView.builder(
+                                            itemCount: groupedItems.length,
+                                            itemBuilder: (context, index) {
+                                                final photouserKey = groupedItems.keys.elementAt(index);
+                                                final itemsForUser = groupedItems[photouserKey];
+
+                                                double totalPrice = 0.0;
+                                                for (var item in itemsForUser!) {
+                                                    totalPrice += item['price'];
+                                                    if (item['selectedAdditionals'] != null && item['selectedAdditionals'] is Iterable) {
+                                                        for (var additional in item['selectedAdditionals']) {
+                                                            totalPrice += additional['price'];
+                                                        }
+                                                    }
+                                                }
+
+                                                return Card(
+                                                    elevation: 0.0,
+                                                    color: Colors.white,
+                                                    margin: EdgeInsets.symmetric(vertical: 8.0),
+                                                    shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(15.0),
+                                                        side: BorderSide(color: const Color.fromARGB(255, 238, 238, 238)),
+                                                    ),
+                                                    child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                            // Mostrar la imagen de Fotousuario y el precio total
+                                                            Padding(
+                                                                padding: EdgeInsets.all(8.0),
+                                                                child: Row(
+                                                                    children: [
+                                                                        if (photouserKey != null)
+                                                                            CircleAvatar(
+                                                                                radius: 15,
+                                                                                backgroundImage: NetworkImage(photouserKey),
+                                                                                backgroundColor: Colors.transparent,
+                                                                                child: Container(
+                                                                                    decoration: BoxDecoration(
+                                                                                        shape: BoxShape.circle,
+                                                                                        border: Border.all(color: const Color.fromARGB(255, 241, 241, 241)),
+                                                                                    ),
+                                                                                ),
+                                                                            ),
+                                                                        SizedBox(width: 10),
+                                                                        Text(
+                                                                            'Total a pagar: \$${totalPrice.toStringAsFixed(0)}',
+                                                                            style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                        // Añadir un espacio entre el total y la X
+                                                                        Spacer(),
+                                                                        // Icono de eliminación
+                                                                        IconButton(
+                                                                            icon: Icon(Icons.close),
+                                                                            onPressed: () {
+                                                                                // Lógica para eliminar el item del carrito y de Firebase
+                                                                                setState(() {
+                                                                                    // Eliminar el grupo de items para el usuario actual
+                                                                                    groupedItems.remove(photouserKey);
+                                                                                    // Eliminar los datos de Firebase
+                                                                                    FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
+                                                                                        firebaseuid: FieldValue.arrayRemove(itemsForUser),
+                                                                                    }).then((_) {
+                                                                                        print('Item eliminado correctamente de Firebase.');
+                                                                                    }).catchError((error) {
+                                                                                        print('Error al eliminar item de Firebase: $error');
+                                                                                    });
+                                                                                });
+                                                                            },
+                                                                        ),
+                                                                    ],
+                                                                ),
+                                                            ),
+                                                            // Mostrar cada elemento asociado con el photouser
+                                                            ...itemsForUser.map((item) {
+                                                                return ListTile(
+                                                                    leading: Container(
+                                                                        decoration: BoxDecoration(
+                                                                            borderRadius: BorderRadius.circular(8.0),
+                                                                            border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
+                                                                        ),
+                                                                        child: ClipRRect(
+                                                                            borderRadius: BorderRadius.circular(8.0),
+                                                                            child: Image.network(
+                                                                                item['imageUrl'],
+                                                                                height: 50,
+                                                                                width: 50,
+                                                                                fit: BoxFit.fill,
+                                                                            ),
+                                                                        ),
+                                                                    ),
+                                                                    title: Text(
+                                                                        item['productName'],
+                                                                        style: TextStyle(fontFamily: "Poppins-l", fontSize: 13, fontWeight: FontWeight.bold),
+                                                                    ),
+                                                                    subtitle: Column(
+                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                        children: [
+                                                                            Text(
+                                                                                'Precio: ${item['price']}',
+                                                                                style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
+                                                                            ),
+                                                                            if (item['selectedAdditionals'] != null && item['selectedAdditionals'] is Iterable)
+                                                                                ...item['selectedAdditionals'].map<Widget>((additional) {
+                                                                                    return Row(
+                                                                                        children: [
+                                                                                            Container(
+                                                                                                decoration: BoxDecoration(
+                                                                                                    borderRadius: BorderRadius.circular(8.0),
+                                                                                                    border: Border.all(color: Colors.grey.shade300),
+                                                                                                ),
+                                                                                                child: ClipRRect(
+                                                                                                    borderRadius: BorderRadius.circular(8.0),
+                                                                                                    child: Image.network(
+                                                                                                        additional['photo'],
+                                                                                                        height: 30,
+                                                                                                        width: 30,
+                                                                                                        fit: BoxFit.cover,
+                                                                                                    ),
+                                                                                                ),
+                                                                                            ),
+                                                                                            SizedBox(width: 10),
+                                                                                            Column(
+                                                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                children: [
+                                                                                                    Text(
+                                                                                                        'Adicional: ${additional['name']}',
+                                                                                                        style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
+                                                                                                    ),
+                                                                                                    Text(
+                                                                                                        'Precio: ${additional['price']}',
+                                                                                                        style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
+                                                                                                    ),
+                                                                                                ],
+                                                                                            ),
+                                                                                        ],
+                                                                                    );
+                                                                                }).toList(),
+                                                                        ],
+                                                                    ),
+                                                                );
+                                                            }).toList(),
+                                                        ],
+                                                    ),
+                                                );
+                                            },
+                                        ),
+                                    );
+                                }
+                            },
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                    );
+                },
             );
-          },
-        );
-      },
+        },
     );
-  }
-
-  void _removeItemFromCart(String productName, double productPrice) {
-    setState(() {
-      _shoppingCart.removeFromCart(productName, productPrice);
-      _cartItemCount--;
-    });
-  }
-
-  double _getProductPrice(String productName) {
-    final producto = _menuData.firstWhere(
-      (producto) => producto['NOMBRE_DEL_PRODUCTO'] == productName,
-    );
-
-    if (producto != null && producto['precio'] is num) {
-      return producto['precio'].toDouble();
-    } else {
-      return 0;
-    }
-  }
+}
 }
 
 void main() {
