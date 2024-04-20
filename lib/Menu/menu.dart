@@ -1,16 +1,16 @@
-// ignore_for_file: must_be_immutable, non_constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, avoid_print
+// ignore_for_file: must_be_immutable, non_constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, avoid_print, unused_field, prefer_final_fields
 
 import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 class OrderDetails {
   final String firebaseuid;
-  final String OrderUrl;
-  final String photouser;
+  final String orderUrl;
+  final String photoUser;
   final String productName;
   final String description;
   final String imageUrl;
@@ -19,8 +19,8 @@ class OrderDetails {
 
   OrderDetails({
     required this.firebaseuid,
-    required this.OrderUrl,
-    required this.photouser,
+    required this.orderUrl,
+    required this.photoUser,
     required this.productName,
     required this.description,
     required this.imageUrl,
@@ -37,18 +37,22 @@ class AdditionalItem {
   AdditionalItem({
     required this.name,
     required this.price,
-    required this.photo
+    required this.photo,
   });
 }
-
 
 class ProductItem {
   int quantity;
   double price;
   String imageUrl;
-  String aditionals;
+  String additionals;
 
-  ProductItem({required this.quantity, required this.price, required this.imageUrl, required this.aditionals});
+  ProductItem({
+    required this.quantity,
+    required this.price,
+    required this.imageUrl,
+    required this.additionals,
+  });
 }
 
 class ShoppingCart {
@@ -58,15 +62,22 @@ class ShoppingCart {
   Map<String, ProductItem> get selectedProducts => _selectedProducts;
   double get totalAmount => _totalAmount;
 
-  void addToCart(String productName, double productPrice, String imageUrl, String aditionals) {
+  // Añadir producto al carrito
+  void addToCart(String productName, double productPrice, String imageUrl, String additionals) {
     if (_selectedProducts.containsKey(productName)) {
       _selectedProducts[productName]!.quantity += 1;
     } else {
-      _selectedProducts[productName] = ProductItem(quantity: 1, price: productPrice, imageUrl: imageUrl, aditionals: aditionals);
+      _selectedProducts[productName] = ProductItem(
+        quantity: 1,
+        price: productPrice,
+        imageUrl: imageUrl,
+        additionals: additionals,
+      );
     }
     _totalAmount += productPrice;
   }
 
+  // Eliminar producto del carrito
   void removeFromCart(String productName, double productPrice) {
     if (_selectedProducts.containsKey(productName)) {
       final currentQuantity = _selectedProducts[productName]!.quantity;
@@ -80,6 +91,7 @@ class ShoppingCart {
     }
   }
 
+  // Vaciar el carrito
   void clearCart() {
     _selectedProducts.clear();
     _totalAmount = 0;
@@ -87,13 +99,19 @@ class ShoppingCart {
 }
 
 class MENU extends StatefulWidget {
-  final String MenuUrl;
+  final String menuUrl;
   final String scannedResult;
   final String photoUrl;
-  final String RestaurantName;
-  String ResDescription;
+  final String restaurantName;
+  final String resDescription;
 
-  MENU(this.scannedResult, this.photoUrl, this.MenuUrl, this.RestaurantName, this.ResDescription);
+  const MENU(
+    this.scannedResult,
+    this.photoUrl,
+    this.menuUrl,
+    this.restaurantName,
+    this.resDescription,
+  );
 
   @override
   _MENUState createState() => _MENUState();
@@ -109,8 +127,8 @@ class _MENUState extends State<MENU> {
   int _cartItemCount = 0;
   bool _isFirstTimeOpen = true;
 
-  // Definir _selectedAdicionals para almacenar los adicionales seleccionados
-  List<String> _selectedAdicionals = [];
+  // Definir _selectedAdditionals para almacenar los adicionales seleccionados
+  List<String> _selectedAdditionals = [];
 
   @override
   void initState() {
@@ -130,295 +148,339 @@ class _MENUState extends State<MENU> {
     super.dispose();
   }
 
+  // Funciones para obtener datos de Firestore
   Future<DocumentSnapshot> _fetchRestaurantData() async {
-    return FirebaseFirestore.instance.collection('Orderly').doc('restaurantes').collection('restaurantes').doc(widget.RestaurantName).get();
+    return FirebaseFirestore.instance
+        .collection('Orderly')
+        .doc('restaurantes')
+        .collection('restaurantes')
+        .doc(widget.restaurantName)
+        .get();
   }
 
   Future<DocumentSnapshot> _fetchBannersData() async {
-    return FirebaseFirestore.instance.collection('Orderly').doc('restaurantes').collection('restaurantes').doc('El corral').collection('banners').doc('banners').get();
+    return FirebaseFirestore.instance
+        .collection('Orderly')
+        .doc('restaurantes')
+        .collection('restaurantes')
+        .doc('El corral')
+        .collection('banners')
+        .doc('banners')
+        .get();
   }
 
   Future<QuerySnapshot> _fetchMenuData() async {
-    return FirebaseFirestore.instance.collection(widget.MenuUrl).orderBy('pos').get();
+    return FirebaseFirestore.instance
+        .collection(widget.menuUrl)
+        .orderBy('pos')
+        .get();
   }
 
+  // Iniciar temporizador para actualizar los datos de banners periódicamente
   void _startTimer() {
     const tenMinutes = Duration(minutes: 10);
     _timer = Timer.periodic(tenMinutes, (Timer timer) {
       _fetchBannersData();
     });
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: FutureBuilder(
+// Construcción de la interfaz de usuario
+@override
+Widget build(BuildContext context) {
+    // Inicializar categoryGroups para agrupar los productos por categoría
+    Map<String, List<QueryDocumentSnapshot>> categoryGroups = {};
+    
+    // Usar FutureBuilder para esperar a que se carguen los datos
+    return FutureBuilder(
         future: Future.wait([_restaurantDataFuture, _bannersDataFuture, _menuDataFuture]),
         builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
+            // Verificar si los datos se han cargado
+            if (!snapshot.hasData) {
+                return const Center(
+                    child: CircularProgressIndicator(),
+                );
+            }
+
+            final List<dynamic>? data = snapshot.data;
+            if (data == null || data.isEmpty) {
+                return const Center(
+                    child: Text('No data available'),
+                );
+            }
+
+            // Obtener los datos del snapshot
+            final restaurantData = data[0] as DocumentSnapshot;
+            final bannersData = data[1] as DocumentSnapshot;
+            final menuData = data[2] as QuerySnapshot;
+
+            // Asignar los datos a _menuData
+            _menuData = menuData.docs;
+
+            // Agrupar los productos por categoría
+            for (final producto in _menuData) {
+                String categoria = producto['TIPO_PRODUCTO'] as String;
+                if (!categoryGroups.containsKey(categoria)) {
+                    categoryGroups[categoria] = [];
+                }
+                categoryGroups[categoria]!.add(producto);
+            }
+
+            // Obtener el ancho de la pantalla
+            double screenWidth = MediaQuery.of(context).size.width;
+
+            // Crear la interfaz de usuario
+            return DefaultTabController(
+                length: categoryGroups.length, // Establece el número de pestañas basado en el número de categorías
+                child: Scaffold(
+                    backgroundColor: Colors.white,
+                    body: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                            const SizedBox(height: 30),
+                            Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                        InkWell(
+                                            onTap: () {
+                                                Navigator.pop(context);
+                                            },
+                                            child: Container(
+                                                width: 40,
+                                                height: 40,
+                                                decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(
+                                                        color: Colors.black,
+                                                        width: 0.2,
+                                                    ),
+                                                ),
+                                                child: const Icon(
+                                                    Icons.arrow_back,
+                                                    size: 25,
+                                                ),
+                                            ),
+                                        ),
+                                        Row(
+                                            children: [
+                                                const Image(
+                                                    image: AssetImage("lib/images/logos/orderly_icon3.png"),
+                                                    height: 50,
+                                                    width: 80,
+                                                ),
+                                                const SizedBox(width: 16),
+                                                Image.network(
+                                                    restaurantData['url'] as String,
+                                                    width: 60,
+                                                    height: 60,
+                                                    fit: BoxFit.contain,
+                                                ),
+                                            ],
+                                        ),
+                                        CircleAvatar(
+                                            backgroundImage: widget.photoUrl.isNotEmpty ? NetworkImage(widget.photoUrl) : const AssetImage("lib/images/logos/default_avatar.png") as ImageProvider,
+                                        ),
+                                    ],
+                                ),
+                            ),
+                            const SizedBox(height: 0),
+                            CarouselSlider(
+                                items: [
+                                    Image.network(bannersData['url1'] as String),
+                                    Image.network(bannersData['url2'] as String),
+                                    Image.network(bannersData['url3'] as String),
+                                ],
+                                options: CarouselOptions(
+                                    enlargeFactor: 0,
+                                    height: 110,
+                                    enlargeCenterPage: false,
+                                    autoPlay: true,
+                                    aspectRatio: 5.5,
+                                    autoPlayCurve: Curves.fastOutSlowIn,
+                                    enableInfiniteScroll: true,
+                                    autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                                    viewportFraction: 0.8,
+                                ),
+                            ),
+                            // TabBar con pestañas
+                            TabBar(
+                                isScrollable: true,
+                                tabs: categoryGroups.keys.map((category) {
+                                    return Tab(
+                                        text: category,
+                                    );
+                                }).toList(),
+                                // Configura el estilo de texto de las pestañas
+                                labelStyle: TextStyle(
+                                    fontSize: screenWidth * 0.04,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.purple,
+                                    fontFamily: 'Poppins-l',
+                                ),
+                                unselectedLabelStyle: TextStyle(
+                                    fontSize: screenWidth * 0.035,
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.grey,
+                                    fontFamily: 'Poppins',
+                                ),
+                            ),
+                            // TabBarView para mostrar el contenido de cada categoría
+                            Expanded(
+                                child: TabBarView(
+                                    children: categoryGroups.entries.map((entry) {
+                                        return SingleChildScrollView(
+                                            child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                children: [
+                                                    Padding(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                                                        
+                                                    ),
+                                                    // Mostrar los productos de la categoría en un diseño de cuadrícula de 2 columnas
+                                                    // Ajuste de GridView.builder
+GridView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.65,
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 0.0,
+    ),
+    itemCount: entry.value.length,
+    itemBuilder: (context, index) {
+        return _buildProductoItem(entry.value[index]);
+    },
+),
+
+                                                ],
+                                            ),
+                                        );
+                                    }).toList(),
+                                ),
+                            ),
+                        ],
+                    ),
+                    floatingActionButton: FloatingActionButton(
+                        onPressed: () {
+                            _showCart();
+                        },
+                        child: Stack(
+                            children: [
+                                const Icon(Icons.shopping_cart),
+                                if (_cartItemCount > 0)
+                                    Positioned(
+                                        top: 0,
+                                        right: 0,
+                                        child: Container(
+                                            padding: const EdgeInsets.all(3),
+                                            decoration: BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle,
+                                            ),
+                                            child: Text(
+                                                _cartItemCount.toString(),
+                                                style: const TextStyle(color: Colors.white),
+                                            ),
+                                        ),
+                                    ),
+                            ],
+                        ),
+                    ),
+                ),
             );
-          }
-
-          final List<dynamic>? data = snapshot.data;
-          if (data == null || data.isEmpty) {
-            return const Center(
-              child: Text('No data available'),
-            );
-          }
-
-          final restaurantData = data[0] as DocumentSnapshot;
-          final bannersData = data[1] as DocumentSnapshot;
-          final menuData = data[2] as QuerySnapshot;
-
-          final imageUrl = restaurantData['url'] as String;
-          widget.ResDescription = restaurantData['descripcion'] as String;
-
-          final url1 = bannersData['url1'] as String;
-          final url2 = bannersData['url2'] as String;
-          final url3 = bannersData['url3'] as String;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 30),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 0.2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          size: 25,
-                        ),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        const Image(
-                          image: AssetImage("lib/images/logos/orderly_icon3.png"),
-                          height: 50,
-                          width: 80,
-                        ),
-                        const SizedBox(width: 16),
-                        Image.network(
-                          imageUrl,
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.contain,
-                        ),
-                      ],
-                    ),
-                    CircleAvatar(
-                      backgroundImage: widget.photoUrl.isNotEmpty ? NetworkImage(widget.photoUrl) : const AssetImage("lib/images/logos/default_avatar.png") as ImageProvider,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 0),
-              CarouselSlider(
-                items: [
-                  Image.network(url1),
-                  Image.network(url2),
-                  Image.network(url3),
-                ],
-                options: CarouselOptions(
-                  enlargeFactor: 0,
-                  height: 110,
-                  enlargeCenterPage: false,
-                  autoPlay: true,
-                  aspectRatio: 5.5,
-                  autoPlayCurve: Curves.fastOutSlowIn,
-                  enableInfiniteScroll: true,
-                  autoPlayAnimationDuration: const Duration(milliseconds: 800),
-                  viewportFraction: 0.8,
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
-                  itemCount: 1,
-                  itemBuilder: (context, index) {
-                    return _buildProductoCard();
-                  },
-                ),
-              ),
-            ],
-          );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showCart();
-        },
-        child: Stack(
-          children: [
-            const Icon(Icons.shopping_cart),
-            if (_cartItemCount > 0)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    _cartItemCount.toString(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
     );
-  }
+}
 
-  Widget _buildProductoCard() {
-    Map<String, List<QueryDocumentSnapshot>> categoryGroups = {};
-    for (final producto in _menuData) {
-      String categoria = producto['TIPO_PRODUCTO'] as String;
-      if (!categoryGroups.containsKey(categoria)) {
-        categoryGroups[categoria] = [];
-      }
-      categoryGroups[categoria]!.add(producto);
-    }
-
-    return Column(
-      children: categoryGroups.entries.map((entry) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  entry.key,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                    fontFamily: "Poppins-l"
-                  ),
-                ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: entry.value.map((producto) => _buildProductoItem(producto)).toList(),
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildProductoItem(QueryDocumentSnapshot producto) {
+Widget _buildProductoItem(QueryDocumentSnapshot producto) {
+    // Define un formato para el dinero con separador de miles
+    final NumberFormat currencyFormat = NumberFormat('#,##0', 'es_CO');
+    
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(8.0),
+        child: Stack(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20.0),
-                  border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
+                Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20.0),
+                                border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
+                            ),
+                            child: SizedBox(
+                                width: 150,
+                                height: 180,
+                                child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    child: Image.network(
+                                        producto['url'] as String,
+                                        fit: BoxFit.cover,
+                                    ),
+                                ),
+                            ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                            width: 150,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                    Text(
+                                        producto['NOMBRE_DEL_PRODUCTO'] as String,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: "Poppins-l", fontSize: 11),
+                                    ),
+                                    const SizedBox(height: 0),
+                                    SizedBox(
+                                        width: 150,
+                                        child: Text(
+                                            producto['descripcion'] as String,
+                                            style: const TextStyle(fontSize: 10, fontFamily: "Poppins", color: Colors.grey),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 3,
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ),
+                        const SizedBox(height: 0),
+                        // Formatea el precio usando el formato definido
+                        Text(
+                            '\$${currencyFormat.format(producto['precio'])}',
+                            style: const TextStyle(fontSize: 12, fontFamily: "Poppins-l", fontWeight: FontWeight.bold, color: Colors.purple),
+                        ),
+                    ],
                 ),
-                child: SizedBox(
-                  width: 150,
-                  height: 180,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20.0),
-                    child: Image.network(
-                      producto['url'] as String,
-                      fit: BoxFit.cover,
+                Positioned(
+                    top: 0,
+                    right: 0,
+                    child: InkWell(
+                        onTap: () {
+                            _showAditionalsScreen(producto['adiciones'], producto);
+                        },
+                        child: Container(
+                            padding: const EdgeInsets.all(4.0),
+                            decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 247, 253, 246),
+                                borderRadius: BorderRadius.circular(20.0),
+                                boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 2,
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 3),
+                                    ),
+                                ],
+                            ),
+                            child: const Icon(Icons.add, color: Colors.green),
+                        ),
                     ),
-                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: 150,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      producto['NOMBRE_DEL_PRODUCTO'] as String,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: "Poppins-l", fontSize: 11),
-                    ),
-                    const SizedBox(height: 0),
-                    SizedBox(
-                      width: 150,
-                      child: Text(
-                        producto['descripcion'] as String,
-                        style: const TextStyle(fontSize: 10, fontFamily: "Poppins", color: Colors.grey),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 0),
-              Text(
-                '\$${producto['precio']}',
-                style: const TextStyle(fontSize: 12, fontFamily: "Poppins-l", fontWeight: FontWeight.bold, color: Colors.purple),
-              ),
             ],
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: InkWell(
-              onTap: () {
-                _showAditionalsScreen(producto['adiciones'], producto);
-              },
-              child: Container(
-                padding: const EdgeInsets.all(4.0),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 247, 253, 246),
-                  borderRadius: BorderRadius.circular(20.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.add, color: Colors.green),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
     );
-  }
-
-
+}
 
 List<OrderDetails> orders = [];
 
@@ -506,7 +568,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                                                     SizedBox(height: 10),
                                                                     // Precio unitario de la orden
                                                                     Text(
-                                                                        'Precio unitario: \$${precioOrden.toStringAsFixed(2)}',
+                                                                        'Precio unitario: \$${precioOrden}',
                                                                         style: TextStyle(
                                                                             fontSize: 12 * MediaQuery.of(context).textScaleFactor,
                                                                             fontFamily: "Poppins-l",
@@ -733,6 +795,8 @@ void _showCart() {
 
     String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
 
+    NumberFormat formatter = NumberFormat("#,##0", "es_ES");
+
     showModalBottomSheet<void>(
         context: context,
         builder: (BuildContext context) {
@@ -835,7 +899,7 @@ void _showCart() {
                                                                             ),
                                                                         SizedBox(width: 10),
                                                                         Text(
-                                                                            'Total a pagar: \$${totalPrice.toStringAsFixed(0)}',
+                                                                            'Total a pagar: \$${formatter.format(totalPrice)}',
                                                                             style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
                                                                         ),
                                                                         // Añadir un espacio entre el total y la X
@@ -888,7 +952,7 @@ void _showCart() {
                                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                                         children: [
                                                                             Text(
-                                                                                'Precio: ${item['price']}',
+                                                                                'Precio: \$${formatter.format(item['price'])}',
                                                                                 style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
                                                                             ),
                                                                             if (item['selectedAdditionals'] != null && item['selectedAdditionals'] is Iterable)
@@ -919,7 +983,7 @@ void _showCart() {
                                                                                                         style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
                                                                                                     ),
                                                                                                     Text(
-                                                                                                        'Precio: ${additional['price']}',
+                                                                                                        'Precio: \$${formatter.format(additional['price'])}',
                                                                                                         style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
                                                                                                     ),
                                                                                                 ],
