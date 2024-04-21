@@ -1,4 +1,4 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, deprecated_member_use, prefer_const_constructors, use_super_parameters, library_private_types_in_public_api, sized_box_for_whitespace, avoid_print
 
 import 'dart:async';
 import 'package:flutter/material.dart';

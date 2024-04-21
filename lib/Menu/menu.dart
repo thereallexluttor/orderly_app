@@ -186,211 +186,358 @@ class _MENUState extends State<MENU> {
 // Construcción de la interfaz de usuario
 @override
 Widget build(BuildContext context) {
-    // Inicializar categoryGroups para agrupar los productos por categoría
-    Map<String, List<QueryDocumentSnapshot>> categoryGroups = {};
-    
-    // Usar FutureBuilder para esperar a que se carguen los datos
-    return FutureBuilder(
-        future: Future.wait([_restaurantDataFuture, _bannersDataFuture, _menuDataFuture]),
-        builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
-            // Verificar si los datos se han cargado
-            if (!snapshot.hasData) {
-                return const Center(
-                    child: CircularProgressIndicator(),
-                );
-            }
+  // Initialize categoryGroups to group products by category
+  Map<String, List<QueryDocumentSnapshot>> categoryGroups = {};
 
-            final List<dynamic>? data = snapshot.data;
-            if (data == null || data.isEmpty) {
-                return const Center(
-                    child: Text('No data available'),
-                );
-            }
+  // Use FutureBuilder to wait for data to load
+  return FutureBuilder(
+      future: Future.wait([_restaurantDataFuture, _bannersDataFuture, _menuDataFuture]),
+      builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
+          // Check if the data has loaded
+          if (!snapshot.hasData) {
+              return const Center(
+                  child: CircularProgressIndicator(),
+              );
+          }
 
-            // Obtener los datos del snapshot
-            final restaurantData = data[0] as DocumentSnapshot;
-            final bannersData = data[1] as DocumentSnapshot;
-            final menuData = data[2] as QuerySnapshot;
+          final List<dynamic>? data = snapshot.data;
+          if (data == null || data.isEmpty) {
+              return const Center(
+                  child: Text('No data available'),
+              );
+          }
 
-            // Asignar los datos a _menuData
-            _menuData = menuData.docs;
+          // Get the data from the snapshot
+          final restaurantData = data[0] as DocumentSnapshot;
+          final bannersData = data[1] as DocumentSnapshot;
+          final menuData = data[2] as QuerySnapshot;
 
-            // Agrupar los productos por categoría
-            for (final producto in _menuData) {
-                String categoria = producto['TIPO_PRODUCTO'] as String;
-                if (!categoryGroups.containsKey(categoria)) {
-                    categoryGroups[categoria] = [];
-                }
-                categoryGroups[categoria]!.add(producto);
-            }
+          // Assign data to _menuData
+          _menuData = menuData.docs;
 
-            // Obtener el ancho de la pantalla
-            double screenWidth = MediaQuery.of(context).size.width;
+          // Group products by category
+          for (final producto in _menuData) {
+              String categoria = producto['TIPO_PRODUCTO'] as String;
+              if (!categoryGroups.containsKey(categoria)) {
+                  categoryGroups[categoria] = [];
+              }
+              categoryGroups[categoria]!.add(producto);
+          }
 
-            // Crear la interfaz de usuario
-            return DefaultTabController(
-                length: categoryGroups.length, // Establece el número de pestañas basado en el número de categorías
-                child: Scaffold(
-                    backgroundColor: Colors.white,
-                    body: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                            const SizedBox(height: 30),
-                            Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                        InkWell(
-                                            onTap: () {
-                                                Navigator.pop(context);
-                                            },
-                                            child: Container(
-                                                width: 40,
-                                                height: 40,
-                                                decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    border: Border.all(
-                                                        color: Colors.black,
-                                                        width: 0.2,
-                                                    ),
-                                                ),
-                                                child: const Icon(
-                                                    Icons.arrow_back,
-                                                    size: 25,
-                                                ),
-                                            ),
-                                        ),
-                                        Row(
-                                            children: [
-                                                const Image(
-                                                    image: AssetImage("lib/images/logos/orderly_icon3.png"),
-                                                    height: 50,
-                                                    width: 80,
-                                                ),
-                                                const SizedBox(width: 16),
-                                                Image.network(
-                                                    restaurantData['url'] as String,
-                                                    width: 60,
-                                                    height: 60,
-                                                    fit: BoxFit.contain,
-                                                ),
-                                            ],
-                                        ),
-                                        CircleAvatar(
-                                            backgroundImage: widget.photoUrl.isNotEmpty ? NetworkImage(widget.photoUrl) : const AssetImage("lib/images/logos/default_avatar.png") as ImageProvider,
-                                        ),
-                                    ],
-                                ),
-                            ),
-                            const SizedBox(height: 0),
-                            CarouselSlider(
-                                items: [
-                                    Image.network(bannersData['url1'] as String),
-                                    Image.network(bannersData['url2'] as String),
-                                    Image.network(bannersData['url3'] as String),
-                                ],
-                                options: CarouselOptions(
-                                    enlargeFactor: 0,
-                                    height: 110,
-                                    enlargeCenterPage: false,
-                                    autoPlay: true,
-                                    aspectRatio: 5.5,
-                                    autoPlayCurve: Curves.fastOutSlowIn,
-                                    enableInfiniteScroll: true,
-                                    autoPlayAnimationDuration: const Duration(milliseconds: 800),
-                                    viewportFraction: 0.8,
-                                ),
-                            ),
-                            // TabBar con pestañas
-                            TabBar(
-                                isScrollable: true,
-                                tabs: categoryGroups.keys.map((category) {
-                                    return Tab(
-                                        text: category,
-                                    );
-                                }).toList(),
-                                // Configura el estilo de texto de las pestañas
-                                labelStyle: TextStyle(
-                                    fontSize: screenWidth * 0.04,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.purple,
-                                    fontFamily: 'Poppins-l',
-                                ),
-                                unselectedLabelStyle: TextStyle(
-                                    fontSize: screenWidth * 0.035,
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.grey,
-                                    fontFamily: 'Poppins',
-                                ),
-                            ),
-                            // TabBarView para mostrar el contenido de cada categoría
-                            Expanded(
-                                child: TabBarView(
-                                    children: categoryGroups.entries.map((entry) {
-                                        return SingleChildScrollView(
-                                            child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                                children: [
-                                                    Padding(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
-                                                        
-                                                    ),
-                                                    // Mostrar los productos de la categoría en un diseño de cuadrícula de 2 columnas
-                                                    // Ajuste de GridView.builder
-GridView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.65,
-        crossAxisSpacing: 16.0,
-        mainAxisSpacing: 0.0,
+          // Get the screen width
+          double screenWidth = MediaQuery.of(context).size.width;
+          int gridCount = screenWidth < 600 ? 2 : 4; // Adjust grid column count based on screen width
+
+          // Create the UI
+          return DefaultTabController(
+              length: categoryGroups.length, // Set the number of tabs based on the number of categories
+              child: Scaffold(
+                  backgroundColor: Colors.white,
+                  body: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                          const SizedBox(height: 30),
+                          
+                          Column(
+  children: [
+    Stack(
+      children: [
+        // Banner Scroll
+        CarouselSlider(
+          items: [
+            // Aquí puedes agregar los elementos del banner scroll
+            Image.network(bannersData['url1'] as String),
+            Image.network(bannersData['url2'] as String),
+            Image.network(bannersData['url3'] as String),
+          ],
+          options: CarouselOptions(
+            enlargeFactor: 0,
+            height: 110,
+            enlargeCenterPage: false,
+            autoPlay: true,
+            aspectRatio: 5.5,
+            autoPlayCurve: Curves.fastOutSlowIn,
+            enableInfiniteScroll: true,
+            autoPlayAnimationDuration: const Duration(milliseconds: 800),
+            viewportFraction: 0.8,
+          ),
+        ),
+
+        // Botón de retroceso y foto de usuario de Google
+        Positioned(
+          top: 8, // Ajusta la posición según tus necesidades
+          left: 8,
+          child: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white, // Cambio de color a blanco
+                  width: 0.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 4,
+                    offset: Offset(0, 2), // Cambia la posición de la sombra según tus necesidades
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.arrow_back,
+                size: 25,
+                color: Colors.white, // Cambio de color a blanco
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 8, // Ajusta la posición según tus necesidades
+          right: 8,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                  offset: Offset(0, 2), // Cambia la posición de la sombra según tus necesidades
+                ),
+              ],
+            ),
+            child: CircleAvatar(
+              backgroundImage: widget.photoUrl.isNotEmpty ? NetworkImage(widget.photoUrl) : const AssetImage("lib/images/logos/default_avatar.png") as ImageProvider,
+            ),
+          ),
+        ),
+      ],
     ),
-    itemCount: entry.value.length,
-    itemBuilder: (context, index) {
-        return _buildProductoItem(entry.value[index]);
-    },
+
+    
+
+    // Información del restaurante debajo del Stack
+    Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+         Container(
+  padding: const EdgeInsets.all(8.0),
+  child: Row(
+    children: [
+      // Foto del restaurante
+      Image.network(
+        restaurantData['url'] as String,
+        width: 60,
+        height: 60,
+        fit: BoxFit.contain,
+        // Puedes ajustar el color de la imagen según tus necesidades
+      ),
+      const SizedBox(width: 8), // Espacio entre la foto y el nombre del restaurante
+      // Nombre del restaurante
+      Text(
+        restaurantData['nombre_restaurante'] as String,
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16,
+          fontFamily: "Poppins-l",
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ],
+  ),
 ),
 
-                                                ],
-                                            ),
-                                        );
-                                    }).toList(),
-                                ),
-                            ),
-                        ],
-                    ),
-                    floatingActionButton: FloatingActionButton(
-                        onPressed: () {
-                            _showCart();
-                        },
-                        child: Stack(
-                            children: [
-                                const Icon(Icons.shopping_cart),
-                                if (_cartItemCount > 0)
-                                    Positioned(
-                                        top: 0,
-                                        right: 0,
-                                        child: Container(
-                                            padding: const EdgeInsets.all(3),
-                                            decoration: BoxDecoration(
-                                                color: Colors.red,
-                                                shape: BoxShape.circle,
-                                            ),
-                                            child: Text(
-                                                _cartItemCount.toString(),
-                                                style: const TextStyle(color: Colors.white),
-                                            ),
-                                        ),
-                                    ),
-                            ],
-                        ),
-                    ),
-                ),
-            );
-        },
+
+        ],
+      ),
+    ),
+  ],
+  
+),
+
+Center(
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Calificación:',
+            style: TextStyle(
+              color: Color.fromARGB(255, 175, 175, 175),
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              fontFamily: "Poppins-l",
+            ),
+          ),
+          Text(
+            ' ${restaurantData['calificacion']} ★',
+            style: TextStyle(
+              color: Colors.amber,
+              fontWeight: FontWeight.normal,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+      SizedBox(width: 16), // Ajusta el espaciado según sea necesario
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Entrega:',
+            style: TextStyle(
+              color: Color.fromARGB(255, 175, 175, 175),
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              fontFamily: "Poppins-l",
+            ),
+          ),
+          Text(
+            ' ${restaurantData['tiempo_entrega']} min',
+            style: TextStyle(
+              color: Colors.purple, // Usando purple como un aproximado al morado
+              fontWeight: FontWeight.normal,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+
+
+
+
+                          const SizedBox(height: 0),
+
+                          
+                          
+                          // TabBar with tabs
+                          TabBar(
+  isScrollable: true,
+  indicatorPadding: EdgeInsets.all(2), 
+ 
+  tabs: categoryGroups.keys.map((String category) {
+    return Tab(
+      text: category,
     );
+  }).toList(),
+  // Set the text style of the tabs
+  labelStyle: TextStyle(
+    fontSize: screenWidth * 0.03,
+    fontWeight: FontWeight.bold,
+    color: Colors.purple,
+    fontFamily: 'Poppins-l',
+  ),
+  unselectedLabelStyle: TextStyle(
+    fontSize: screenWidth * 0.0305,
+    fontWeight: FontWeight.normal,
+    color: Colors.grey,
+    fontFamily: 'Poppins',
+  ),
+),
+
+                          // TabBarView to display content for each category
+                          Expanded(
+                              child: TabBarView(
+                                  children: categoryGroups.entries.map((entry) {
+                                      return SingleChildScrollView(
+                                          child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                  Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+                                                  ),
+                                                  // Display products of the category in a 2-column grid layout
+                                                  // Adjust GridView.builder
+                                                  GridView.builder(
+                                                      shrinkWrap: true,
+                                                      physics: const NeverScrollableScrollPhysics(),
+                                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                                          crossAxisCount: gridCount,
+                                                          childAspectRatio: 0.65,
+                                                          crossAxisSpacing: 20.0,
+                                                          mainAxisSpacing: 10.0,
+                                                      ),
+                                                      itemCount: entry.value.length,
+                                                      itemBuilder: (context, index) {
+                                                          return _buildProductoItem(entry.value[index]);
+                                                      },
+                                                  ),
+
+                                              ],
+                                          ),
+                                      );
+                                  }).toList(),
+                              ),
+                          ),
+                      ],
+                  ),
+                  floatingActionButton: Padding(
+    padding: EdgeInsets.only(right: 10), // Añade un padding a la derecha para mover el botón hacia la izquierda
+    child: InkWell(
+        onTap: () {
+            _showCart();
+        },
+        child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Ajusta el padding para que se adapte al contenido
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+                boxShadow: [
+                    BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: const Offset(0, 1), // Ajusta la sombra
+                    ),
+                ],
+            ),
+            child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                    const Icon(Icons.shopping_cart, color: Colors.purple),
+                    const SizedBox(width: 8), // Espacio adicional entre el ícono y el texto
+                    Text(
+                        "Ver tu orden",
+                        style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
+                    ),
+                    if (_cartItemCount > 0)
+                        Container(
+                            margin: const EdgeInsets.only(left: 8), // Espacio adicional al lado del contador
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                                _cartItemCount.toString(),
+                                style: const TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                        ),
+                ],
+            ),
+        ),
+    ),
+),
+
+
+              ),
+          );
+      },
+  );
 }
 
 Widget _buildProductoItem(QueryDocumentSnapshot producto) {
@@ -410,8 +557,8 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
                                 border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
                             ),
                             child: SizedBox(
-                                width: 150,
-                                height: 180,
+                                width: 130,
+                                height: 160,
                                 child: ClipRRect(
                                     borderRadius: BorderRadius.circular(20.0),
                                     child: Image.network(
@@ -454,13 +601,13 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
                 ),
                 Positioned(
                     top: 0,
-                    right: 0,
+                    right: 20,
                     child: InkWell(
                         onTap: () {
                             _showAditionalsScreen(producto['adiciones'], producto);
                         },
                         child: Container(
-                            padding: const EdgeInsets.all(4.0),
+                            padding: const EdgeInsets.all(6.0),
                             decoration: BoxDecoration(
                                 color: const Color.fromARGB(255, 247, 253, 246),
                                 borderRadius: BorderRadius.circular(20.0),
@@ -820,8 +967,8 @@ void _showCart() {
                                 ),
                             ],
                         ),
-                        child: FutureBuilder<DocumentSnapshot>(
-                            future: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).get(),
+                        child: StreamBuilder<DocumentSnapshot>(
+                            stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
                             builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                     return Center(child: CircularProgressIndicator());
@@ -880,7 +1027,6 @@ void _showCart() {
                                                     child: Column(
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
-                                                            // Mostrar la imagen de Fotousuario y el precio total
                                                             Padding(
                                                                 padding: EdgeInsets.all(8.0),
                                                                 child: Row(
@@ -902,17 +1048,12 @@ void _showCart() {
                                                                             'Total a pagar: \$${formatter.format(totalPrice)}',
                                                                             style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
                                                                         ),
-                                                                        // Añadir un espacio entre el total y la X
                                                                         Spacer(),
-                                                                        // Icono de eliminación
                                                                         IconButton(
                                                                             icon: Icon(Icons.close),
                                                                             onPressed: () {
-                                                                                // Lógica para eliminar el item del carrito y de Firebase
                                                                                 setState(() {
-                                                                                    // Eliminar el grupo de items para el usuario actual
                                                                                     groupedItems.remove(photouserKey);
-                                                                                    // Eliminar los datos de Firebase
                                                                                     FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
                                                                                         firebaseuid: FieldValue.arrayRemove(itemsForUser),
                                                                                     }).then((_) {
@@ -926,7 +1067,6 @@ void _showCart() {
                                                                     ],
                                                                 ),
                                                             ),
-                                                            // Mostrar cada elemento asociado con el photouser
                                                             ...itemsForUser.map((item) {
                                                                 return ListTile(
                                                                     leading: Container(
