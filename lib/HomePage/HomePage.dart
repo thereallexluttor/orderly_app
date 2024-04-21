@@ -9,6 +9,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:orderly_app/QR_scanner/qr_scanner.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: MediaQuery(
+        data: MediaQueryData.fromWindow(WidgetsBinding.instance.window).copyWith(textScaleFactor: 1.0),
+        child: HomePage(),
+      ),
+    );
+  }
+}
+
+
 class RestauranteItem extends StatefulWidget {
   final String nombre;
   final String urlLogo;
@@ -66,7 +86,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
                     fontFamily: "Poppins",
                     color: Colors.purple,
                     fontWeight: FontWeight.normal,
-                    fontSize: 11,
+                    fontSize: 9,
                   ),
                 ),
               ),
@@ -85,7 +105,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
 
   Widget _buildLocationButton() {
     return Padding(
-      padding: const EdgeInsets.only(right: 10), // Ajusta el padding a tu preferencia
+      padding: const EdgeInsets.only(right: 10),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -95,14 +115,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  //color: Colors.black.withOpacity(0.2),
-                  //spreadRadius: 1,
-                  //blurRadius: 2,
-                  //offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: [],
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
@@ -164,18 +177,18 @@ class _RestauranteItemState extends State<RestauranteItem> {
                     fontFamily: "Poppins-l",
                     color: Color.fromARGB(255, 0, 0, 0),
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: 10,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.only(right: 80), // Agrega margen solo a la derecha
+                  padding: const EdgeInsets.only(right: 80),
                   child: Text(
                     widget.descripcion,
                     style: const TextStyle(
                       fontFamily: "Poppins-l",
                       color: Color.fromARGB(255, 92, 92, 92),
                       fontWeight: FontWeight.bold,
-                      fontSize: 10,
+                      fontSize: 8,
                     ),
                   ),
                 )
@@ -191,7 +204,6 @@ class _RestauranteItemState extends State<RestauranteItem> {
     final String destination = '${widget.gpsPoint.latitude},${widget.gpsPoint.longitude}';
     final String origin = '${widget.currentPosition?.latitude},${widget.currentPosition?.longitude}';
     final String url = 'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination';
-    // ignore: deprecated_member_use
     launch(url);
   }
 }
@@ -204,20 +216,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
   List<QueryDocumentSnapshot> _allRestaurantesData = [];
   Position? _currentPosition;
   final ScrollController _scrollController = ScrollController();
   List<QueryDocumentSnapshot> _filteredRestaurantesData = [];
   final TextEditingController _searchController = TextEditingController();
   final List<String> _sliderImages = [
-    "https://firebasestorage.googleapis.com/v0/b/orderly-33eb6.appspot.com/o/1.png?alt=media&token=0b010f6f-1709-4837-a852-199f0cd08a20",
-    "https://firebasestorage.googleapis.com/v0/b/orderly-33eb6.appspot.com/o/2.png?alt=media&token=e5087d6e-f3e4-4a69-a9ac-ad7105b04e9a",
-    "https://firebasestorage.googleapis.com/v0/b/orderly-33eb6.appspot.com/o/3.png?alt=media&token=524372db-78a1-4f4d-aaf8-5566ca76cbee",
-    'https://firebasestorage.googleapis.com/v0/b/orderly-33eb6.appspot.com/o/4.png?alt=media&token=5de7a562-8f6d-4732-930f-fe780b465cda',
+    "https://firebasestorage.googleapis.com/v0/b/orderlyapp-762a8.appspot.com/o/110010101%2Fbanners%2Fbanner.jpg?alt=media&token=402d8f9c-47d6-48a7-80dd-f68447b73c6f",
+    "https://firebasestorage.googleapis.com/v0/b/orderlyapp-762a8.appspot.com/o/110010101%2Fbanners%2Fbanner.jpg?alt=media&token=402d8f9c-47d6-48a7-80dd-f68447b73c6f",
+    "https://firebasestorage.googleapis.com/v0/b/orderlyapp-762a8.appspot.com/o/110010101%2Fbanners%2Fbanner.jpg?alt=media&token=402d8f9c-47d6-48a7-80dd-f68447b73c6f",
+    "https://firebasestorage.googleapis.com/v0/b/orderlyapp-762a8.appspot.com/o/110010101%2Fbanners%2Fbanner.jpg?alt=media&token=402d8f9c-47d6-48a7-80dd-f68447b73c6f",
   ];
   int _selectedButtonIndex = 0;
   RestauranteItem? _currentOpenRestaurant;
+  bool _showCategories = true;  // Controla la visibilidad de las categorías
 
   @override
   void initState() {
@@ -272,38 +284,45 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      
-      child: Scaffold(
+@override
+Widget build(BuildContext context) {
+  return SafeArea(
+    child: Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          
-        title: const Image(
-          image: AssetImage("lib/images/logos/orderly_icon3.png"),
-          height: 60,
-          width: 60,
+        elevation: 0,
+        title: Row(
+          children: [
+            Image.asset(
+              "lib/images/logos/orderly_icon3.png",
+              height: 100,
+              width: 70,
+            ),
+          ],
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: Icon(Icons.settings, color: Colors.black),
             onPressed: () {
-              // Mostrar menú emergente de ajustes
               _showSettingsMenu(context);
             },
           ),
         ],
-        toolbarHeight: 50,
+        toolbarHeight: 75,
       ),
-        body: SingleChildScrollView(
+      
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
+             
               CarouselSlider(
                 options: CarouselOptions(
                   autoPlay: true,
-                  height: 200,
+                  height: 120,
                   autoPlayCurve: Curves.fastOutSlowIn,
                   autoPlayAnimationDuration: const Duration(milliseconds: 800),
                   autoPlayInterval: const Duration(seconds: 4),
@@ -317,62 +336,64 @@ class _HomePageState extends State<HomePage> {
                         imageUrl: imageUrl,
                         placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                         errorWidget: (context, url, error) => const Icon(Icons.error),
-                        fit: BoxFit.scaleDown,
+                        fit: BoxFit.fill,
                       );
                     },
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 25),
               Center(
                 child: SizedBox(
-                  width: 320,
+                  width: 380,
                   child: Material(
-                    elevation: 5.0,
+                    elevation: 1.5,
+                    shadowColor: Colors.grey.withOpacity(0.1),
                     borderRadius: const BorderRadius.all(Radius.circular(30.0)),
                     child: TextField(
                       controller: _searchController,
                       onChanged: _filterRestaurantes,
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 50.0),
-                        hintText: '       Busca Opciones cerca de ti',
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Image.asset('lib/images/icons/magnifying-glass.png', width: 5, height: 5,),
-                        ),
-                        border: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(30.0)),
-                          borderSide: BorderSide.none,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                        hintText: 'Busca opciones cerca de ti',
+                        prefixIcon: Icon(Icons.search, color: Colors.grey),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                          borderSide: BorderSide(color: Color.fromARGB(131, 230, 230, 230), width: 5.001),
                         ),
                         filled: true,
-                        fillColor: const Color.fromARGB(255, 255, 255, 255),
-                        hintStyle: const TextStyle(
+                        fillColor: Colors.white,
+                        hintStyle: TextStyle(
                           fontFamily: 'Poppins-L',
-                          fontSize: 13,
-                          color: Color.fromARGB(255, 87, 87, 87),
+                          fontSize: 12,
+                          color: Color.fromARGB(255, 150, 150, 150),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
-              Center(
-                child: SizedBox(
-                  height: 40,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _categories.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: EdgeInsets.only(left: index == 0 ? 10 : 0, right: 10),
-                        child: _buildButton(
+              const SizedBox(height: 25),
+              Visibility(
+                visible: _showCategories,
+                child: Center(
+                  child: SizedBox(
+                    height: 200,
+                    child: GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemCount: _categories.length,
+                      itemBuilder: (context, index) {
+                        return _buildButton(
                           index,
                           _emojis[index],
                           _categories[index],
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -384,16 +405,13 @@ class _HomePageState extends State<HomePage> {
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     color: Color.fromARGB(255, 43, 43, 43),
-                    fontSize: 15,
+                    fontSize: 12,
                     fontFamily: "Poppins-l",
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-
               const SizedBox(height: 10),
-
-              // Lista de restaurantes
               Container(
                 constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).size.height / 1.71,),
                 child: ListView.builder(
@@ -421,12 +439,12 @@ class _HomePageState extends State<HomePage> {
                       margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(15.0),
+                        borderRadius: BorderRadius.circular(10.0),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            spreadRadius: 1,
-                            blurRadius: 10,
+                            color: Colors.black.withOpacity(0.09),
+                            spreadRadius: 5,
+                            blurRadius: 5,
                             offset: const Offset(0, 2),
                           ),
                         ],
@@ -439,7 +457,7 @@ class _HomePageState extends State<HomePage> {
                         distancia: distancia,
                         descripcion: descripcion,
                         isSelected: _currentOpenRestaurant?.nombre == nombre,
-                        currentPosition: _currentPosition, // Agregado: pasar la posición actual
+                        currentPosition: _currentPosition,
                       ),
                     );
                   },
@@ -448,148 +466,162 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => QR_Scanner()),
-            );
-          },
-          backgroundColor: const Color.fromARGB(250, 255, 255, 255),
-          foregroundColor: const Color(0xFFB747EB),
-          elevation: 7,
-          shape: const CircleBorder(eccentricity: 0.5),
-          child: const Icon(Icons.qr_code),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const QR_Scanner()),
+          );
+        },
+        backgroundColor: const Color.fromARGB(250, 255, 255, 255),
+        foregroundColor: const Color(0xFFB747EB),
+        elevation: 7,
+        shape: const CircleBorder(eccentricity: 0.5),
+        child: const Icon(Icons.qr_code),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        notchMargin: 3,
+        shape: const CircularNotchedRectangle(),
+        color: const Color.fromARGB(255, 252, 252, 252),
+        height: 34,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 0.0),
+              child: InkWell(
+                onTap: () {
+                  _scrollController.animateTo(
+                    0.0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.ease,
+                  );
+                },
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 0.0),
+              child: InkWell(
+                onTap: () {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.ease,
+                  );
+                },
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [],
+                ),
+              ),
+            ),
+          ],
         ),
-        bottomNavigationBar: BottomAppBar(
-          notchMargin: 3,
-          shape: const CircularNotchedRectangle(),
-          color: const Color.fromARGB(255, 252, 252, 252),
-          height: 34,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 0.0),
-                child: InkWell(
-                  onTap: () {
-                    _scrollController.animateTo(
-                      0.0,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.ease,
-                    );
-                  },
-                  child: const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [],
+      ),
+    ),
+  );
+}
+
+
+  Widget _buildButton(int index, String emoji, String dishName) {
+    bool isSelected = index == _selectedButtonIndex;
+    double buttonWidth = 20 + dishName.length * 2;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedButtonIndex = index;
+          if (index >= 1 && index <= 5) {
+            double scrollOffset = index * (buttonWidth + 20);
+            _scrollController.animateTo(
+              scrollOffset,
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.ease,
+            );
+          }
+          _filterRestaurantesByCategory(dishName);
+        });
+      },
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        width: buttonWidth,
+        height: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? const Color.fromARGB(255, 183, 71, 235) : Color.fromARGB(255, 243, 243, 243),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: Offset(0, 3),
                   ),
+                ]
+              : [],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 1),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+              child: Text(
+                emoji,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: isSelected ? Color.fromARGB(255, 236, 236, 236) : Color.fromARGB(255, 238, 238, 238),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 0.0),
-                child: InkWell(
-                  onTap: () {
-                    _scrollController.animateTo(
-                      _scrollController.position.maxScrollExtent,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.ease,
-                    );
-                  },
-                  child: const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [],
-                  ),
-                ),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              dishName,
+              style: TextStyle(
+                fontSize: 9,
+                color: isSelected ? Colors.white : Colors.black,
+                fontFamily: "Poppins-l",
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
   }
-
-  Widget _buildButton(int index, String emoji, String dishName) {
-  bool isSelected = index == _selectedButtonIndex;
-  double buttonWidth = 90 + dishName.length * 2;
-  return ElevatedButton(
-    onPressed: () {
-      setState(() {
-        _selectedButtonIndex = index;
-        if (index >= 1 && index <= 5) {
-          double scrollOffset = index * (buttonWidth + 20);
-          _scrollController.animateTo(
-            scrollOffset,
-            duration: const Duration(milliseconds: 1000),
-            curve: Curves.ease,
-          );
-        }
-        _filterRestaurantesByCategory(dishName);
-      });
-    },
-    style: ElevatedButton.styleFrom(
-      fixedSize: Size(buttonWidth, 40),
-      elevation: 1,
-      side: const BorderSide(color: Color.fromARGB(255, 236, 236, 236)),
-      backgroundColor: isSelected ? const Color.fromARGB(255, 183, 71, 235) : const Color.fromARGB(255, 134, 134, 134),
-      padding: EdgeInsets.zero,
-      alignment: Alignment.centerLeft,
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(left: 10),
-          height: 28, // Ajusta el tamaño del círculo
-          width: 28, // Ajusta el tamaño del círculo
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-          ),
-          child: Center(
-            child: Text(
-              emoji,
-              style: TextStyle(
-                fontSize: 15, // Ajusta el tamaño del emoji
-                color: isSelected ? const Color.fromARGB(255, 158, 158, 158) : Color.fromARGB(255, 168, 168, 168),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            dishName,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.white,
-              fontFamily: "Poppins_l",
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.start,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
   static const List<String> _emojis = [
     '🍔', '🍕', '🍗', '🍥', '🌭', '🇮🇹', '🇲🇽', '🐟',
   ];
 
   static const List<String> _categories = [
-    'Burgers', 'Pizza', 'Pollo', 'Sushi', 'HotDog', 'Italiana', 'Mexicana', 'Comida de mar',
+    'Burgers', 'Pizza', 'Pollo', 'Sushi', 'HotDog', 'Italiana', 'Mexicana', 'Mar',
   ];
 
   void _filterRestaurantes(String searchText) {
-    if (searchText.isEmpty) {
-      _filterRestaurantesByCategory(_categories[_selectedButtonIndex]);
-    } else {
-      _filterRestaurantesByName(searchText);
-    }
+    setState(() {
+      if (searchText.isEmpty) {
+        _showCategories = true;  // Mostrar categorías si el campo está vacío
+        _filterRestaurantesByCategory(_categories[_selectedButtonIndex]);
+      } else {
+        _showCategories = false;  // Ocultar categorías si hay texto
+        _filterRestaurantesByName(searchText);
+      }
+    });
   }
 
   void _showSettingsMenu(BuildContext context) {
@@ -602,29 +634,27 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-             
               _buildSettingsMenuItem(Icons.book_sharp, 'Historial de ordenes', () {
-                // Implementar acción para salir de la app
+                // Implementar acción
               }),
               _buildSettingsMenuItem(Icons.phone, 'Soporte', () {
-                // Implementar acción para salir de la app
+                // Implementar acción
               }),
               _buildSettingsMenuItem(Icons.person, 'Información personal', () {
-                // Implementar acción para información personal
+                // Implementar acción
               }),
               _buildSettingsMenuItem(Icons.monetization_on, 'Medios de pago', () {
-                // Implementar acción para información personal
+                // Implementar acción
               }),
               _buildSettingsMenuItem(Icons.discount_sharp, 'Cupones', () {
-                // Implementar acción para información personal
+                // Implementar acción
               }),
               _buildSettingsMenuItem(Icons.warning, 'Terminos y condiciones', () {
-                // Implementar acción para información personal
+                // Implementar acción
               }),
               _buildSettingsMenuItem(Icons.exit_to_app, 'Salir de la app', () {
-                // Implementar acción para salir de la app
+                // Implementar acción
               }),
-              
             ],
           ),
         );
@@ -658,9 +688,4 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-void main() {
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: HomePage(),
-  ));
-}
+
