@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+
 
 class OrderDetails {
   final String firebaseuid;
@@ -501,52 +503,69 @@ Center(
                       ],
                   ),
                   floatingActionButton: Padding(
-    padding: EdgeInsets.only(right: 10), // Añade un padding a la derecha para mover el botón hacia la izquierda
+    padding: EdgeInsets.all(1), // Adds padding to the right to move the button to the left
     child: InkWell(
         onTap: () {
             _showCart();
         },
         child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Ajusta el padding para que se adapte al contenido
+            constraints: BoxConstraints(
+                maxWidth: 380, // Set a maximum width for the container
+                minHeight: 48, // Set a minimum height for the container
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.purple,
                 boxShadow: [
                     BoxShadow(
                         color: Colors.grey.withOpacity(0.5),
                         spreadRadius: 1,
                         blurRadius: 3,
-                        offset: const Offset(0, 1), // Ajusta la sombra
+                        offset: const Offset(0, 1),
                     ),
                 ],
             ),
             child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                    const Icon(Icons.shopping_cart, color: Colors.purple),
-                    const SizedBox(width: 8), // Espacio adicional entre el ícono y el texto
+                    const Icon(Icons.shopping_cart, color: Colors.white),
+                    const SizedBox(width: 8),
                     Text(
                         "Ver tu orden",
-                        style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
                     ),
-                    if (_cartItemCount > 0)
-                        Container(
-                            margin: const EdgeInsets.only(left: 8), // Espacio adicional al lado del contador
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                                _cartItemCount.toString(),
-                                style: const TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                        ),
+                    StreamBuilder<int>(
+                        stream: countTotalOrderedProductsStream(),
+                        builder: (context, snapshot) {
+                            Widget indicator = snapshot.hasData && snapshot.data! > 0 ?
+                                Container(
+                                    margin: const EdgeInsets.only(left: 8),
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                    ),
+                                    constraints: BoxConstraints(
+                                        minWidth: 20,
+                                        minHeight: 20,
+                                    ),
+                                    child: Text(
+                                        snapshot.data!.toString(),
+                                        style: const TextStyle(color: Colors.purple, fontSize: 12),
+                                        textAlign: TextAlign.center,
+                                    ),
+                                ) : SizedBox(width: 20, height: 20); // Use a fixed-size empty box to keep layout consistent
+
+                            return indicator;
+                        }
+                    ),
                 ],
             ),
         ),
-    ),
+    )
 ),
+
 
 
               ),
@@ -623,189 +642,234 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
                             _showAditionalsScreen(producto['adiciones'], producto);
                         },
                         child: Container(
-    padding: const EdgeInsets.all(6.0),
-    decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 247, 253, 246),
-        borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(
-            color: Colors.green, // Color del contorno igual al del icono '+'
-            width: 3.0 // Grosor del borde
-        ),
-        boxShadow: [
-            BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 1,
-                blurRadius: 3,
-                offset: const Offset(0,0),
-            ),
-        ],
-    ),
-    child: const Icon(Icons.add, color: Colors.green),
-)
+                            padding: const EdgeInsets.all(6.0),
+                            decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 247, 253, 246),
+                                borderRadius: BorderRadius.circular(25.0),
+                                border: Border.all(
+                                    color: Colors.green, // Color del contorno igual al del icono '+'
+                                    width: 5.0 // Grosor del borde
+                                ),
+                                boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 1,
+                                        blurRadius: 3,
+                                        offset: const Offset(0,0),
+                                    ),
+                                ],
+                            ),
+                            child: const Icon(Icons.add, color: Colors.green,),
+                        )
 
-                    ),
-                ),
-            ],
-        ),
-    );
-}
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                            );
+                        }
 
-List<OrderDetails> orders = [];
+                        List<OrderDetails> orders = [];
 
 void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
-    String nombreOrden = orden['NOMBRE_DEL_PRODUCTO'] as String;
-    String descripcionOrden = orden['descripcion'] as String;
-    int precioOrden = orden['precio'] as int;
-    String urlOrden = orden['url'] as String;
+                            String nombreOrden = orden['NOMBRE_DEL_PRODUCTO'] as String;
+                            String descripcionOrden = orden['descripcion'] as String;
+                            int precioOrden = orden['precio'] as int;
+                            String urlOrden = orden['url'] as String;
 
-    // Formateador para los números con separador de miles
-    final formatter = NumberFormat('#,###', 'es_ES');
+                            // Formateador para los números con separador de miles
+                            final formatter = NumberFormat('#,###', 'es_ES');
 
-    // Inicializar el precio total con el precio base de la orden
-    double precioTotal = precioOrden.toDouble();
+                            // Inicializar el precio total con el precio base de la orden
+                            double precioTotal = precioOrden.toDouble();
 
-    // Variable específica para cada pantalla para almacenar los elementos seleccionados
-    Set<String> _selectedAditionals = {};
+                            // Variable específica para cada pantalla para almacenar los elementos seleccionados
+                            Set<String> _selectedAditionals = {};
 
-    FirebaseFirestore.instance.collection(producto).get().then((querySnapshot) {
-        Map<String, List<DocumentSnapshot>> categorias = {};
-        querySnapshot.docs.forEach((doc) {
-            String status = doc['status'];
-            if (!categorias.containsKey(status)) {
-                categorias[status] = [];
-            }
-            categorias[status]!.add(doc);
-        });
+                            FirebaseFirestore.instance.collection(producto).get().then((querySnapshot) {
+                                Map<String, List<DocumentSnapshot>> categorias = {};
+                                querySnapshot.docs.forEach((doc) {
+                                    String status = doc['status'];
+                                    if (!categorias.containsKey(status)) {
+                                        categorias[status] = [];
+                                    }
+                                    categorias[status]!.add(doc);
+                                });
 
-        showModalBottomSheet<void>(
-            context: context,
-            builder: (BuildContext context) {
-                return StatefulBuilder(
-                    builder: (BuildContext context, StateSetter setState) {
-                        return Stack(
-                            children: [
-                                SingleChildScrollView(
-                                    child: Container(
-                                        padding: EdgeInsets.all(20),
-                                        decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.only(
-                                                topLeft: Radius.circular(20),
-                                                topRight: Radius.circular(20),
-                                            ),
-                                            color: Colors.white,
-                                        ),
-                                        child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                                SizedBox(height: 10),
-                                                // Detalles de la orden
-                                                Text(
-                                                    'Detalles de la orden:',
-                                                    style: TextStyle(
-                                                        fontSize: 14 * MediaQuery.of(context).textScaleFactor,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontFamily: "Poppins-l",
-                                                    ),
-                                                ),
-                                                SizedBox(height: 10),
-                                                // Foto de la orden
-                                                Container(
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        border: Border.all(
-                                                            color: Colors.grey.shade300,
-                                                            width: 1.0
-                                                        ),
-                                                        borderRadius: BorderRadius.circular(10)
-                                                    ),
-                                                    padding: EdgeInsets.all(8.0),
-                                                    margin: EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                            Container(
-                                                                width: MediaQuery.of(context).size.width * 0.25,
-                                                                height: MediaQuery.of(context).size.width * 0.25,
-                                                                margin: EdgeInsets.only(right: 10),
+                                showModalBottomSheet<void>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (BuildContext context) {
+                                        return StatefulBuilder(
+                                            builder: (BuildContext context, StateSetter setState) {
+                                                return Stack(
+                                                    children: [
+                                                        SingleChildScrollView(
+                                                            child: Container(
+                                                                padding: EdgeInsets.all(20),
                                                                 decoration: BoxDecoration(
-                                                                    borderRadius: BorderRadius.circular(10),
-                                                                    image: DecorationImage(
-                                                                        image: NetworkImage(urlOrden),
-                                                                        fit: BoxFit.cover,
+                                                                    borderRadius: BorderRadius.only(
+                                                                        topLeft: Radius.circular(20),
+                                                                        topRight: Radius.circular(20),
                                                                     ),
+                                                                    color: Colors.white,
                                                                 ),
-                                                            ),
-                                                            Expanded(
                                                                 child: Column(
                                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                                     children: [
-                                                                        // Descripción de la orden
-                                                                        Text(
-                                                                            descripcionOrden,
-                                                                            style: TextStyle(
-                                                                                fontSize: 11 * MediaQuery.of(context).textScaleFactor,
-                                                                                fontFamily: "Poppins",
-                                                                            ),
-                                                                        ),
-                                                                        SizedBox(height: 10),
-                                                                        // Precio unitario de la orden
-                                                                        Text(
-                                                                            'Precio unitario: \$${formatter.format(precioOrden)}',
-                                                                            style: TextStyle(
-                                                                                fontSize: 12 * MediaQuery.of(context).textScaleFactor,
-                                                                                fontFamily: "Poppins-l",
-                                                                            ),
-                                                                        ),
-                                                                    ],
-                                                                ),
-                                                            ),
-                                                        ],
-                                                    ),
-                                                ),
-                                                SizedBox(height: 20),
+                                                                        
+                                                                        Container(
+                          
+                          width: MediaQuery.of(context).size.width * 0.95, // Ancho del contenedor, ajustable según necesidades
+                          margin: EdgeInsets.all(8.0), // Margen alrededor del contenedor para separación
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center, // Alinea los elementos en el centro horizontalmente
+                            children: [
+  // Stack para la imagen, precio y botón de cierre
+  Stack(
+    children: [
+      // Imagen del producto
+      Container(
+        width: MediaQuery.of(context).size.width * 0.85,
+        height: MediaQuery.of(context).size.width * 0.45,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          image: DecorationImage(
+            image: NetworkImage(urlOrden),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      // Botón de cierre en la esquina superior izquierda
+      Positioned(
+        top: 16,
+        left: 16,
+        child: GestureDetector(
+          onTap: () {
+            Navigator.pop(context); // Cerrar el modal actual o widget
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white, // Fondo blanco para mejor visibilidad
+              borderRadius: BorderRadius.circular(10), // Bordes redondeados
+            ),
+            child: Icon(
+              Icons.close, // Icono de cierre
+              color: Colors.black,
+            ),
+            padding: EdgeInsets.all(4), // Padding alrededor del icono
+          ),
+        ),
+      ),
+      // Precio en la esquina superior derecha
+      Positioned(
+        top: 16,
+        right: 16,
+        child: Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Text(
+            '\$${formatter.format(precioOrden)}',
+            style: TextStyle(
+              fontSize: 12 * MediaQuery.of(context).textScaleFactor,
+              fontFamily: "Poppins-l",
+              fontWeight: FontWeight.bold,
+              color: Colors.purple,
+            ),
+          ),
+        ),
+      ),
+    ],
+  ),
+  SizedBox(height: 10), // Espacio entre la imagen y la descripción
+  // Descripción de la orden
+  Text(
+    nombreOrden,
+    textAlign: TextAlign.start,
+    style: TextStyle(
+      fontSize: 14 * MediaQuery.of(context).textScaleFactor,
+      fontFamily: "Poppins-l",
+      fontWeight: FontWeight.bold
+    ),
+  ),
+  Text(
+    descripcionOrden,
+    textAlign: TextAlign.left,
+    style: TextStyle(
+      fontSize: 11 * MediaQuery.of(context).textScaleFactor,
+      fontFamily: "Poppins",
+    ),
+  ),
+  SizedBox(height: 10), // Espacio adicional
+],
+
+                          ),
+                        ),
+
+                                                SizedBox(height: 0),
                                                 // Selección de productos adicionales
                                                 Text(
-                                                    'Selecciona los adicionales para $nombreOrden',
+                                                    'Selecciona los adicionales',
                                                     style: TextStyle(
                                                         fontSize: 14 * MediaQuery.of(context).textScaleFactor,
                                                         fontWeight: FontWeight.bold,
                                                         fontFamily: "Poppins-l",
                                                     ),
                                                 ),
-                                                SizedBox(height: 20),
+                                                SizedBox(height: 5),
                                                 Column(
-                                                    children: categorias.entries.map((category) => Container(
-                                                        margin: EdgeInsets.only(top: 10, bottom: 5),
-                                                        padding: EdgeInsets.symmetric(horizontal: 16),
-                                                        child: Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                                Text(
-                                                                    category.key,
-                                                                    style: TextStyle(
-                                                                        fontSize: 16,
-                                                                        fontWeight: FontWeight.bold,
-                                                                        fontFamily: "Poppins-l",
-                                                                    ),
-                                                                ),
-                                                                SizedBox(height: 10),
-                                                                ...category.value.map((adicional) {
-                                                                    return _buildAdditionalTile(adicional, (int precioAdicional, bool selected) {
-                                                                        setState(() {
-                                                                            if (selected) {
-                                                                                precioTotal += precioAdicional;
-                                                                                _selectedAditionals.add(adicional['nombre']);
-                                                                            } else {
-                                                                                precioTotal -= precioAdicional;
-                                                                                _selectedAditionals.remove(adicional['nombre']);
-                                                                            }
-                                                                        });
-                                                                    }, _selectedAditionals.contains(adicional['nombre']));
-                                                                }).toList(),
-                                                            ],
-                                                        ),
-                                                    )).toList(),
-                                                ),
+  children: categorias.entries.map((category) => Container(
+    margin: EdgeInsets.only(top: 10, bottom: 5),
+    padding: EdgeInsets.symmetric(horizontal: 16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+  alignment: Alignment.centerRight, // Alinea el Container a la derecha
+  child: Container(
+    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Espacio interno para el texto
+    decoration: BoxDecoration(
+      color: Colors.black, // Fondo negro para el contenedor del texto
+      borderRadius: BorderRadius.circular(10), // Bordes ligeramente redondeados
+    ),
+    child: Text(
+      category.key,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        fontFamily: "Poppins-l",
+        color: Colors.white, // Texto en color blanco
+      ),
+    ),
+  ),
+),
+
+        ...category.value.map((adicional) {
+          return _buildAdditionalTile(adicional, (int precioAdicional, bool selected) {
+            setState(() {
+              if (selected) {
+                precioTotal += precioAdicional;
+                _selectedAditionals.add(adicional['nombre']);
+              } else {
+                precioTotal -= precioAdicional;
+                _selectedAditionals.remove(adicional['nombre']);
+              }
+            });
+          }, _selectedAditionals.contains(adicional['nombre']));
+        }).toList(),
+      ],
+    ),
+  )).toList(),
+),
+
                                                 SizedBox(height: 50),
                                             ],
                                         ),
@@ -817,43 +881,53 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                     right: 20,
                                     child: GestureDetector(
                                         onTap: () async {
-                                            // Lógica para agregar la orden a Firestore
-                                            List<String> urlSegments = widget.scannedResult.split("/");
-                                            String firestorepath1 = "/"+urlSegments[1] +"/"+urlSegments[2] +"/"+ urlSegments[3]+"/"+urlSegments[4] +"/"+urlSegments[5]+"/"+urlSegments[6] +"/"+urlSegments[7];
-                                            String firestorepath2 = urlSegments[8];
-                                            String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
-                                            final userOrderRef = FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2);
-                                            Map<String, dynamic> orderData = {
-                                                'OrderUrl': widget.scannedResult,
-                                                'photouser': widget.photoUrl,
-                                                'productName': nombreOrden,
-                                                'description': descripcionOrden,
-                                                'imageUrl': urlOrden,
-                                                'price': precioTotal,
-                                                'selectedAdditionals': _selectedAditionals.map((ad) {
-                                                    return {
-                                                        'name': ad,
-                                                        'price': categorias.values.expand((el) => el).firstWhere((item) => item['nombre'] == ad)['precio'],
-                                                        'photo': categorias.values.expand((el) => el).firstWhere((item) => item['nombre'] == ad)['url'] as String,
-                                                    };
-                                                }).toList(),
-                                            };
-                                            // Guardar la orden en Firestore
-                                            userOrderRef.update({
-                                                firebaseuid: FieldValue.arrayUnion([orderData])
-                                            }).then((_) {
-                                                print('La orden se ha guardado correctamente en Firestore.');
-                                            }).catchError((error) {
-                                                print('Error al guardar la orden en Firestore: $error');
-                                            });
-                                            // Limpiar elementos seleccionados y precio total
-                                            setState(() {
-                                                _selectedAditionals.clear();
-                                                precioTotal = precioOrden.toDouble();
-                                            });
-                                            // Cerrar la pantalla de selección de adicionales
-                                            Navigator.pop(context);
-                                        },
+  // Generar un ID único para la orden
+  String orderId = Uuid().v4();
+
+  // Lógica para agregar la orden a Firestore
+  List<String> urlSegments = widget.scannedResult.split("/");
+  String firestorepath1 = "/"+urlSegments[1] +"/"+urlSegments[2] +"/"+ urlSegments[3]+"/"+urlSegments[4] +"/"+urlSegments[5]+"/"+urlSegments[6] +"/"+urlSegments[7];
+  String firestorepath2 = urlSegments[8];
+  String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
+  final userOrderRef = FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2);
+
+  // Mapa de datos para la orden con el ID único
+  Map<String, dynamic> orderData = {
+    'orderId': orderId, // Agregar el campo de ID único
+    'OrderUrl': widget.scannedResult,
+    'photouser': widget.photoUrl,
+    'productName': nombreOrden,
+    'description': descripcionOrden,
+    'imageUrl': urlOrden,
+    'price': precioTotal,
+    'selectedAdditionals': _selectedAditionals.map((ad) {
+      return {
+        'name': ad,
+        'price': categorias.values.expand((el) => el).firstWhere((item) => item['nombre'] == ad)['precio'],
+        'photo': categorias.values.expand((el) => el).firstWhere((item) => item['nombre'] == ad)['url'] as String,
+      };
+    }).toList(),
+  };
+
+  // Guardar la orden en Firestore
+  userOrderRef.update({
+    firebaseuid: FieldValue.arrayUnion([orderData])
+  }).then((_) {
+    print('La orden se ha guardado correctamente en Firestore.');
+  }).catchError((error) {
+    print('Error al guardar la orden en Firestore: $error');
+  });
+
+  // Limpiar elementos seleccionados y precio total
+  setState(() {
+    _selectedAditionals.clear();
+    precioTotal = precioOrden.toDouble();
+  });
+
+  // Cerrar la pantalla de selección de adicionales
+  Navigator.pop(context);
+},
+
                                         child: Container(
                                             width: MediaQuery.of(context).size.width * 0.9,
                                             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -907,17 +981,15 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
 }
 
 Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSelectionChanged, bool isSelected) {
-  // Utilizando un enfoque minimalista para el diseño de la tarjeta del producto
   return Container(
-    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 5),  // Menor margen vertical para tarjetas más delgadas
+    margin: EdgeInsets.symmetric(vertical: 2, horizontal: 5),  // Margen vertical sutil para separación entre tiles
     decoration: BoxDecoration(
+      border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 1)),  // Línea divisoria gris tenue
       borderRadius: BorderRadius.circular(12),
       color: Colors.white,
-      border: Border.all(color: Colors.grey[300]!, width: 1), // Borde gris sutil
-      boxShadow: [],  // Opcional: remover sombras para un look más limpio
     ),
     child: ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0.2), // Padding reducido para un diseño más delgado
+      contentPadding: EdgeInsets.symmetric(horizontal: 1, vertical: 1), // Reducción del padding vertical para tiles más delgados
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: Image.network(
@@ -927,37 +999,38 @@ Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSe
           fit: BoxFit.cover,
         ),
       ),
-      title: Text(
-        adicional['nombre'] as String, // 'carne 250 gr' por ejemplo
-        style: TextStyle(
-          fontFamily: "Poppins-l",
-          fontSize: 14,  // Tamaño de fuente ajustado si es necesario
-          fontWeight: FontWeight.w600, // Fuente más pesada para el nombre del producto
-          color: Colors.black87, // Texto oscuro para un buen contraste en el fondo claro
-        ),
-      ),
-      subtitle: Row(
+      title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Expanded(
+            child: Text(
+              adicional['nombre'] as String, // 'Carne 250 gr' por ejemplo
+              style: TextStyle(
+                fontFamily: "Poppins-l",
+                fontSize: 12,  // Tamaño de fuente adecuado
+                fontWeight: FontWeight.w600, // Fuente más pesada para el nombre del producto
+                color: Colors.black87, // Texto oscuro para un buen contraste en el fondo claro
+              ),
+            ),
+          ),
           Text(
             '\$${adicional['precio']}',
             style: TextStyle(
               fontFamily: "Poppins",
-              fontSize: 12, // Tamaño de fuente más pequeño para subtítulos
-              color: Colors.grey[800], // Precio con estilo distintivo pero sutil
+              fontSize: 11, // Tamaño de fuente más pequeño para el precio
+              color: Colors.grey[800], // Color gris oscuro para el precio
             ),
           ),
-          Icon( // Uso de Icon en lugar de Checkbox para un diseño más intuitivo
+          Icon( // Icono de selección
             isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
             color: isSelected ? Colors.green : Colors.grey,
           ),
         ],
       ),
-      onTap: () => onSelectionChanged(adicional['precio'], !isSelected), // Cambio en el manejo de eventos para permitir toque en todo el ListTile
+      onTap: () => onSelectionChanged(adicional['precio'], !isSelected), // Manejo de selección
     ),
   );
 }
-
 
 
 
@@ -1177,6 +1250,36 @@ void _showCart() {
         },
     );
 }
+
+Stream<int> countTotalOrderedProductsStream() {
+    List<String> urlSegments = widget.scannedResult.split("/");
+
+    String firestorePath1 = "/${urlSegments[1]}/${urlSegments[2]}/${urlSegments[3]}/${urlSegments[4]}/${urlSegments[5]}/${urlSegments[6]}/${urlSegments[7]}";
+    String firestorePath2 = urlSegments[8];
+
+    return FirebaseFirestore.instance.collection(firestorePath1).doc(firestorePath2).snapshots().map((snapshot) {
+        if (snapshot.exists) {
+            final orderData = snapshot.data() as Map<String, dynamic>;
+            int totalCount = 0;
+
+            // Count each product
+            orderData.forEach((key, items) {
+                if (items is List) {
+                    for (var item in items) {
+                        if (item is Map<String, dynamic> && item.containsKey('productName')) {
+                            totalCount++;
+                        }
+                    }
+                }
+            });
+
+            return totalCount; // Returning the total count of products
+        } else {
+            return 0; // Return 0 if no data exists
+        }
+    });
+}
+
 
 
 Widget _showOnlineUsers() {
