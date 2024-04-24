@@ -1,12 +1,14 @@
-// ignore_for_file: must_be_immutable, non_constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, avoid_print, unused_field, prefer_final_fields
+// ignore_for_file: must_be_immutable, non_constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, avoid_print, unused_field, prefer_final_fields, no_leading_underscores_for_local_identifiers, sort_child_properties_last, deprecated_member_use, unnecessary_to_list_in_spreads, prefer_interpolation_to_compose_strings
 
 import 'dart:async';
+import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 
 class OrderDetails {
@@ -577,7 +579,11 @@ Center(
 Widget _buildProductoItem(QueryDocumentSnapshot producto) {
     // Define un formato para el dinero con separador de miles
     final NumberFormat currencyFormat = NumberFormat('#,##0', 'es_CO');
-    
+     ScreenUtil.init(
+      context,
+      designSize: Size(360, 690),
+      minTextAdapt: true,
+    );
     // Modificado el padding para desplazar un poco a la derecha la tarjeta
     return Padding(
         padding: const EdgeInsets.fromLTRB(30.0, 8.0, 8.0, 8.0),  // Aumentado el espacio a la izquierda
@@ -676,6 +682,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                             String descripcionOrden = orden['descripcion'] as String;
                             int precioOrden = orden['precio'] as int;
                             String urlOrden = orden['url'] as String;
+                            Map<String, bool> firstItemSelected = {};
 
                             // Formateador para los números con separador de miles
                             final formatter = NumberFormat('#,###', 'es_ES');
@@ -688,13 +695,18 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
 
                             FirebaseFirestore.instance.collection(producto).get().then((querySnapshot) {
                                 Map<String, List<DocumentSnapshot>> categorias = {};
-                                querySnapshot.docs.forEach((doc) {
+                                for (var doc in querySnapshot.docs) {
                                     String status = doc['status'];
                                     if (!categorias.containsKey(status)) {
                                         categorias[status] = [];
                                     }
                                     categorias[status]!.add(doc);
-                                });
+                                    if (status.toLowerCase().contains("obligatorio") && (firstItemSelected[status] == null || !firstItemSelected[status]!)) {
+        firstItemSelected[status] = true;  // Marcar que ya se ha preseleccionado un item para esta categoría
+        _selectedAditionals.add(doc['nombre']);  // Añadir a los seleccionados
+        precioTotal += doc['precio'];  // Añadir su precio al total
+      }
+                                }
 
                                 showModalBottomSheet<void>(
                                     context: context,
@@ -706,7 +718,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                                     children: [
                                                         SingleChildScrollView(
                                                             child: Container(
-                                                                padding: EdgeInsets.all(20),
+                                                                padding: EdgeInsets.all(10),
                                                                 decoration: BoxDecoration(
                                                                     borderRadius: BorderRadius.only(
                                                                         topLeft: Radius.circular(20),
@@ -735,7 +747,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
     children: [
       // Imagen del producto
       Container(
-        width: MediaQuery.of(context).size.width * 0.85,
+        width: MediaQuery.of(context).size.width * 0.95,
         height: MediaQuery.of(context).size.width * 0.45,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -789,17 +801,24 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
       ),
     ],
   ),
-  SizedBox(height: 10), // Espacio entre la imagen y la descripción
+  SizedBox(height: 8), // Espacio entre la imagen y la descripción
   // Descripción de la orden
-  Text(
+  Container(
+  width: double.infinity, // Asegura que el contenedor ocupe todo el ancho disponible
+  alignment: Alignment.centerLeft, // Alinea el texto a la izquierda
+  child: Text(
     nombreOrden,
-    textAlign: TextAlign.start,
     style: TextStyle(
-      fontSize: 14 * MediaQuery.of(context).textScaleFactor,
-      fontFamily: "Poppins-l",
+      fontSize: 16 * MediaQuery.of(context).textScaleFactor,
+      fontFamily: "Poppins",
       fontWeight: FontWeight.bold
     ),
   ),
+),
+
+
+
+SizedBox(height: 8),
   Text(
     descripcionOrden,
     textAlign: TextAlign.left,
@@ -817,7 +836,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                                 SizedBox(height: 0),
                                                 // Selección de productos adicionales
                                                 Text(
-                                                    'Selecciona los adicionales',
+                                                    '  Personaliza tu orden:',
                                                     style: TextStyle(
                                                         fontSize: 14 * MediaQuery.of(context).textScaleFactor,
                                                         fontWeight: FontWeight.bold,
@@ -825,51 +844,58 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                                     ),
                                                 ),
                                                 SizedBox(height: 5),
-                                                Column(
-  children: categorias.entries.map((category) => Container(
-    margin: EdgeInsets.only(top: 10, bottom: 5),
-    padding: EdgeInsets.symmetric(horizontal: 16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Align(
-  alignment: Alignment.centerRight, // Alinea el Container a la derecha
-  child: Container(
-    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Espacio interno para el texto
-    decoration: BoxDecoration(
-      color: Colors.black, // Fondo negro para el contenedor del texto
-      borderRadius: BorderRadius.circular(10), // Bordes ligeramente redondeados
-    ),
-    child: Text(
-      category.key,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        fontFamily: "Poppins-l",
-        color: Colors.white, // Texto en color blanco
+                                                SizedBox(
+                                                  height: 290,
+                                                // Envuelve la Columna generada dentro de un SingleChildScrollView
+child:SingleChildScrollView(
+  child: Column(
+    
+    children: categorias.entries.map((category) => Container(
+      margin: EdgeInsets.only(top: 10, bottom: 5),
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Align(
+            alignment: Alignment.centerRight, // Alinea el Container a la derecha
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 1), // Espacio interno para el texto
+              decoration: BoxDecoration(
+                color: Colors.black, // Fondo negro para el contenedor del texto
+                borderRadius: BorderRadius.circular(10), // Bordes ligeramente redondeados
+              ),
+              child: Text(
+                category.key,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Poppins-l",
+                  color: Colors.white, // Texto en color blanco
+                ),
+              ),
+            ),
+          ),
+          ...category.value.map((adicional) {
+            bool isSelected = _selectedAditionals.contains(adicional['nombre']);
+            return _buildAdditionalTile(adicional, (int precioAdicional, bool selected) {
+              setState(() {
+                if (selected) {
+                  precioTotal += precioAdicional;
+                  _selectedAditionals.add(adicional['nombre']);
+                } else {
+                  precioTotal -= precioAdicional;
+                  _selectedAditionals.remove(adicional['nombre']);
+                }
+              });
+            },  isSelected);
+          }).toList(),
+        ],
       ),
-    ),
+    )).toList(),
   ),
-),
-
-        ...category.value.map((adicional) {
-          return _buildAdditionalTile(adicional, (int precioAdicional, bool selected) {
-            setState(() {
-              if (selected) {
-                precioTotal += precioAdicional;
-                _selectedAditionals.add(adicional['nombre']);
-              } else {
-                precioTotal -= precioAdicional;
-                _selectedAditionals.remove(adicional['nombre']);
-              }
-            });
-          }, _selectedAditionals.contains(adicional['nombre']));
-        }).toList(),
-      ],
-    ),
-  )).toList(),
-),
-
+)
+,
+                                                ),
                                                 SizedBox(height: 50),
                                             ],
                                         ),
@@ -929,46 +955,44 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
 },
 
                                         child: Container(
-                                            width: MediaQuery.of(context).size.width * 0.9,
-                                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                            decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(12),
-                                                color: Colors.purple,
-                                                boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.grey.withOpacity(0.5),
-                                                        spreadRadius: 2,
-                                                        blurRadius: 5,
-                                                        offset: Offset(0, 3),
-                                                    ),
-                                                ],
-                                            ),
-                                            child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                    Expanded(
-                                                        child: Text(
-                                                            'Agregar a la orden',
-                                                            style: TextStyle(
-                                                                fontFamily: "Poppins-l",
-                                                                fontSize: 10 * MediaQuery.of(context).textScaleFactor,
-                                                                color: Colors.white,
-                                                                overflow: TextOverflow.ellipsis, // Para manejar texto largo
-                                                            ),
-                                                        ),
-                                                    ),
-                                                    Text(
-                                                        '\$${formatter.format(precioTotal)}', // Ahora formateando el precio total con puntos de los miles
-                                                        style: TextStyle(
-                                                            fontFamily: "Poppins-l",
-                                                            fontSize: 10 * MediaQuery.of(context).textScaleFactor,
-                                                            fontWeight: FontWeight.bold,
-                                                            color: Colors.white,
-                                                        ),
-                                                    ),
-                                                ],
-                                            ),
-                                        ),
+  width: MediaQuery.of(context).size.width * 0.5,
+  padding: EdgeInsets.symmetric(horizontal: 2, vertical: 12),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(22),
+    color: Colors.purple,
+    boxShadow: [
+      BoxShadow(
+        color: Colors.grey.withOpacity(0.5),
+        spreadRadius: 2,
+        blurRadius: 5,
+        offset: Offset(0, 3),
+      ),
+    ],
+  ),
+  child: Center(
+    child: Row(
+      mainAxisSize: MainAxisSize.min,  // Usa el espacio mínimo necesario para los hijos
+      mainAxisAlignment: MainAxisAlignment.start,  // Alinea los widgets al inicio del Row
+      children: [
+        Text(
+          'Agregar a la orden',
+          style: myTextStyle(),
+        ),
+        SizedBox(width: 8),  // Controla este espacio para ajustar la cercanía de los textos
+        Text(
+          '\$${formatter.format(precioTotal)}',
+          style: TextStyle(
+            fontFamily: "Poppins-l",
+            fontSize: 14 * MediaQuery.of(context).textScaleFactor,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
                                     ),
                                 ),
                             ],
@@ -980,16 +1004,24 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
     });
 }
 
+TextStyle myTextStyle() {
+  return TextStyle(
+    fontFamily: "Poppins-l",
+    fontSize: 13.sp, // 'sp' escala automáticamente el tamaño del texto según la pantalla
+    color: Colors.white,
+    overflow: TextOverflow.ellipsis,
+  );
+}
+
 Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSelectionChanged, bool isSelected) {
   return Container(
-    margin: EdgeInsets.symmetric(vertical: 2, horizontal: 5),  // Margen vertical sutil para separación entre tiles
     decoration: BoxDecoration(
-      border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 1)),  // Línea divisoria gris tenue
+      border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 1)),
       borderRadius: BorderRadius.circular(12),
       color: Colors.white,
     ),
     child: ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 1, vertical: 1), // Reducción del padding vertical para tiles más delgados
+      contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: Image.network(
@@ -1004,12 +1036,12 @@ Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSe
         children: [
           Expanded(
             child: Text(
-              adicional['nombre'] as String, // 'Carne 250 gr' por ejemplo
+              adicional['nombre'] as String,
               style: TextStyle(
                 fontFamily: "Poppins-l",
-                fontSize: 12,  // Tamaño de fuente adecuado
-                fontWeight: FontWeight.w600, // Fuente más pesada para el nombre del producto
-                color: Colors.black87, // Texto oscuro para un buen contraste en el fondo claro
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
               ),
             ),
           ),
@@ -1017,17 +1049,17 @@ Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSe
             '\$${adicional['precio']}',
             style: TextStyle(
               fontFamily: "Poppins",
-              fontSize: 11, // Tamaño de fuente más pequeño para el precio
-              color: Colors.grey[800], // Color gris oscuro para el precio
+              fontSize: 11,
+              color: Colors.grey[800],
             ),
           ),
-          Icon( // Icono de selección
+          Icon(
             isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
             color: isSelected ? Colors.green : Colors.grey,
           ),
         ],
       ),
-      onTap: () => onSelectionChanged(adicional['precio'], !isSelected), // Manejo de selección
+      onTap: () => onSelectionChanged(adicional['precio'], !isSelected),
     ),
   );
 }
@@ -1045,210 +1077,195 @@ void _showCart() {
     NumberFormat formatter = NumberFormat("#,##0", "es_ES");
 
     showModalBottomSheet<void>(
-        context: context,
-        builder: (BuildContext context) {
-            return StatefulBuilder(
-                builder: (context, setState) {
-                    return Container(
-                        height: 400,
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(25),
-                                topRight: Radius.circular(25),
-                            ),
-                            boxShadow: [
-                                BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 5,
-                                    blurRadius: 7,
-                                    offset: Offset(0, 3),
-                                ),
-                            ],
+    context: context,
+    builder: (BuildContext context) {
+        return StatefulBuilder(
+            builder: (context, setState) {
+                return Container(
+                    height: MediaQuery.of(context).size.height * 0.5, // Establece la altura a la mitad de la pantalla
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(25),
+                            topRight: Radius.circular(25),
                         ),
-                        child: StreamBuilder<DocumentSnapshot>(
-                            stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
-                            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return Center(child: CircularProgressIndicator());
-                                } else if (snapshot.hasError) {
-                                    return Center(child: Text('Error: ${snapshot.error}'));
-                                } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
-                                    return Center(child: Text('No se encontraron datos'));
-                                } else {
-                                    final orderData = snapshot.data!.data() as Map<String, dynamic>;
+                        boxShadow: [
+                            BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: Offset(0, 3),
+                            ),
+                        ],
+                    ),
+                    child: StreamBuilder<DocumentSnapshot>(
+                        stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
+                        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                return Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                                return Center(child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                                return Center(child: Text('No se encontraron datos'));
+                            } else {
+                                final orderData = snapshot.data!.data() as Map<String, dynamic>;
 
-                                    Map<String, List<Map<String, dynamic>>> groupedItems = {};
+                                Map<String, List<Map<String, dynamic>>> groupedItems = {};
 
-                                    for (String key in orderData.keys) {
-                                        final itemList = orderData[key];
-
-                                        if (itemList is Iterable) {
-                                            for (var item in itemList) {
-                                                if (item is Map<String, dynamic>) {
-                                                    String photouser = item['photouser'];
-                                                    if (groupedItems.containsKey(photouser)) {
-                                                        groupedItems[photouser]?.add(item);
-                                                    } else {
-                                                        groupedItems[photouser] = [item];
-                                                    }
+                                for (String key in orderData.keys) {
+                                    final itemList = orderData[key];
+                                    if (itemList is Iterable) {
+                                        for (var item in itemList) {
+                                            if (item is Map<String, dynamic>) {
+                                                String photouser = item['photouser'];
+                                                if (groupedItems.containsKey(photouser)) {
+                                                    groupedItems[photouser]?.add(item);
+                                                } else {
+                                                    groupedItems[photouser] = [item];
                                                 }
                                             }
                                         }
                                     }
+                                }
 
-                                    return Container(
-                                        padding: EdgeInsets.all(10),
-                                        child: ListView.builder(
-                                            itemCount: groupedItems.length,
-                                            itemBuilder: (context, index) {
-                                                final photouserKey = groupedItems.keys.elementAt(index);
-                                                final itemsForUser = groupedItems[photouserKey];
+                                return Container(
+                                    padding: EdgeInsets.all(10),
+                                    child: ListView.builder(
+                                        itemCount: groupedItems.length,
+                                        itemBuilder: (context, index) {
+                                            final photouserKey = groupedItems.keys.elementAt(index);
+                                            final itemsForUser = groupedItems[photouserKey];
+                                            double totalPrice = itemsForUser!.fold(0.0, (sum, item) => sum + item['price'] + (item['selectedAdditionals'] as List<dynamic>).fold(0.0, (sum, additional) => sum + additional['price']));
 
-                                                double totalPrice = 0.0;
-                                                for (var item in itemsForUser!) {
-                                                    totalPrice += item['price'];
-                                                    if (item['selectedAdditionals'] != null && item['selectedAdditionals'] is Iterable) {
-                                                        for (var additional in item['selectedAdditionals']) {
-                                                            totalPrice += additional['price'];
-                                                        }
-                                                    }
-                                                }
-
-                                                return Card(
-                                                    elevation: 0.0,
-                                                    color: Colors.white,
-                                                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                                                    shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(15.0),
-                                                        side: BorderSide(color: const Color.fromARGB(255, 238, 238, 238)),
-                                                    ),
-                                                    child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                            Padding(
-                                                                padding: EdgeInsets.all(8.0),
-                                                                child: Row(
-                                                                    children: [
-                                                                        if (photouserKey != null)
-                                                                            CircleAvatar(
-                                                                                radius: 15,
-                                                                                backgroundImage: NetworkImage(photouserKey),
-                                                                                backgroundColor: Colors.transparent,
-                                                                                child: Container(
-                                                                                    decoration: BoxDecoration(
-                                                                                        shape: BoxShape.circle,
-                                                                                        border: Border.all(color: const Color.fromARGB(255, 241, 241, 241)),
-                                                                                    ),
-                                                                                ),
-                                                                            ),
-                                                                        SizedBox(width: 10),
-                                                                        Text(
-                                                                            'Total a pagar: \$${formatter.format(totalPrice)}',
-                                                                            style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
+                                            return Card(
+                                                elevation: 0.0,
+                                                color: Colors.white,
+                                                margin: EdgeInsets.symmetric(vertical: 8.0),
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(15.0),
+                                                    side: BorderSide(color: const Color.fromARGB(255, 238, 238, 238)),
+                                                ),
+                                                child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                        Padding(
+                                                            padding: EdgeInsets.all(8.0),
+                                                            child: Row(
+                                                                children: [
+                                                                    if (photouserKey != null)
+                                                                        CircleAvatar(
+                                                                            radius: 15,
+                                                                            backgroundImage: NetworkImage(photouserKey),
+                                                                            backgroundColor: Colors.transparent,
                                                                         ),
-                                                                        Spacer(),
-                                                                        IconButton(
-                                                                            icon: Icon(Icons.close),
-                                                                            onPressed: () {
-                                                                                setState(() {
-                                                                                    groupedItems.remove(photouserKey);
-                                                                                    FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
-                                                                                        firebaseuid: FieldValue.arrayRemove(itemsForUser),
-                                                                                    }).then((_) {
-                                                                                        print('Item eliminado correctamente de Firebase.');
-                                                                                    }).catchError((error) {
-                                                                                        print('Error al eliminar item de Firebase: $error');
-                                                                                    });
+                                                                    SizedBox(width: 10),
+                                                                    Text(
+                                                                        'Total a pagar: \$${formatter.format(totalPrice)}',
+                                                                        style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
+                                                                    ),
+                                                                    Spacer(),
+                                                                    IconButton(
+                                                                        icon: Icon(Icons.close),
+                                                                        onPressed: () {
+                                                                            setState(() {
+                                                                                groupedItems.remove(photouserKey);
+                                                                                FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
+                                                                                    firebaseuid: FieldValue.arrayRemove(itemsForUser),
+                                                                                }).then((_) {
+                                                                                    print('Item eliminado correctamente de Firebase.');
+                                                                                }).catchError((error) {
+                                                                                    print('Error al eliminar item de Firebase: $error');
                                                                                 });
-                                                                            },
+                                                                            });
+                                                                        },
+                                                                    ),
+                                                                ],
+                                                            ),
+                                                        ),
+                                                        ...itemsForUser.map((item) {
+                                                            return ListTile(
+                                                                leading: Container(
+                                                                    decoration: BoxDecoration(
+                                                                        borderRadius: BorderRadius.circular(8.0),
+                                                                        border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
+                                                                    ),
+                                                                    child: ClipRRect(
+                                                                        borderRadius: BorderRadius.circular(8.0),
+                                                                        child: Image.network(
+                                                                            item['imageUrl'],
+                                                                            height: 50,
+                                                                            width: 50,
+                                                                            fit: BoxFit.fill,
                                                                         ),
+                                                                    ),
+                                                                ),
+                                                                title: Text(
+                                                                    item['productName'],
+                                                                    style: TextStyle(fontFamily: "Poppins-l", fontSize: 13, fontWeight: FontWeight.bold),
+                                                                ),
+                                                                subtitle: Column(
+                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    children: [
+                                                                        Text(
+                                                                            'Precio: \$${formatter.format(item['price'])}',
+                                                                            style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                        if (item['selectedAdditionals'] != null && item['selectedAdditionals'] is Iterable)
+                                                                            ...item['selectedAdditionals'].map<Widget>((additional) {
+                                                                                return Row(
+                                                                                    children: [
+                                                                                        Container(
+                                                                                            decoration: BoxDecoration(
+                                                                                                borderRadius: BorderRadius.circular(8.0),
+                                                                                                border: Border.all(color: Colors.grey.shade300),
+                                                                                            ),
+                                                                                            child: ClipRRect(
+                                                                                                borderRadius: BorderRadius.circular(8.0),
+                                                                                                child: Image.network(
+                                                                                                    additional['photo'],
+                                                                                                    height: 30,
+                                                                                                    width: 30,
+                                                                                                    fit: BoxFit.cover,
+                                                                                                ),
+                                                                                            ),
+                                                                                        ),
+                                                                                        SizedBox(width: 10),
+                                                                                        Column(
+                                                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                            children: [
+                                                                                                Text(
+                                                                                                    'Adicional: ${additional['name']}',
+                                                                                                    style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
+                                                                                                ),
+                                                                                                Text(
+                                                                                                    'Precio: \$${formatter.format(additional['price'])}',
+                                                                                                    style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
+                                                                                                ),
+                                                                                            ],
+                                                                                        ),
+                                                                                    ],
+                                                                                );
+                                                                            }).toList(),
                                                                     ],
                                                                 ),
-                                                            ),
-                                                            ...itemsForUser.map((item) {
-                                                                return ListTile(
-                                                                    leading: Container(
-                                                                        decoration: BoxDecoration(
-                                                                            borderRadius: BorderRadius.circular(8.0),
-                                                                            border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
-                                                                        ),
-                                                                        child: ClipRRect(
-                                                                            borderRadius: BorderRadius.circular(8.0),
-                                                                            child: Image.network(
-                                                                                item['imageUrl'],
-                                                                                height: 50,
-                                                                                width: 50,
-                                                                                fit: BoxFit.fill,
-                                                                            ),
-                                                                        ),
-                                                                    ),
-                                                                    title: Text(
-                                                                        item['productName'],
-                                                                        style: TextStyle(fontFamily: "Poppins-l", fontSize: 13, fontWeight: FontWeight.bold),
-                                                                    ),
-                                                                    subtitle: Column(
-                                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                                        children: [
-                                                                            Text(
-                                                                                'Precio: \$${formatter.format(item['price'])}',
-                                                                                style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
-                                                                            ),
-                                                                            if (item['selectedAdditionals'] != null && item['selectedAdditionals'] is Iterable)
-                                                                                ...item['selectedAdditionals'].map<Widget>((additional) {
-                                                                                    return Row(
-                                                                                        children: [
-                                                                                            Container(
-                                                                                                decoration: BoxDecoration(
-                                                                                                    borderRadius: BorderRadius.circular(8.0),
-                                                                                                    border: Border.all(color: Colors.grey.shade300),
-                                                                                                ),
-                                                                                                child: ClipRRect(
-                                                                                                    borderRadius: BorderRadius.circular(8.0),
-                                                                                                    child: Image.network(
-                                                                                                        additional['photo'],
-                                                                                                        height: 30,
-                                                                                                        width: 30,
-                                                                                                        fit: BoxFit.cover,
-                                                                                                    ),
-                                                                                                ),
-                                                                                            ),
-                                                                                            SizedBox(width: 10),
-                                                                                            Column(
-                                                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                                children: [
-                                                                                                    Text(
-                                                                                                        'Adicional: ${additional['name']}',
-                                                                                                        style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
-                                                                                                    ),
-                                                                                                    Text(
-                                                                                                        'Precio: \$${formatter.format(additional['price'])}',
-                                                                                                        style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
-                                                                                                    ),
-                                                                                                ],
-                                                                                            ),
-                                                                                        ],
-                                                                                    );
-                                                                                }).toList(),
-                                                                        ],
-                                                                    ),
-                                                                );
-                                                            }).toList(),
-                                                        ],
-                                                    ),
-                                                );
-                                            },
-                                        ),
-                                    );
-                                }
-                            },
-                        ),
-                    );
-                },
-            );
-        },
-    );
+                                                            );
+                                                        }).toList(),
+                                                    ],
+                                                ),
+                                            );
+                                        },
+                                    ),
+                                );
+                            }
+                        },
+                    ),
+                );
+            },
+        );
+    },
+);
+
 }
 
 Stream<int> countTotalOrderedProductsStream() {
