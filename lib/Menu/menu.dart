@@ -1,12 +1,15 @@
 // ignore_for_file: must_be_immutable, non_constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, avoid_print, unused_field, prefer_final_fields, no_leading_underscores_for_local_identifiers, sort_child_properties_last, deprecated_member_use, unnecessary_to_list_in_spreads, prefer_interpolation_to_compose_strings
 
 import 'dart:async';
-import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
+import 'package:orderly_app/payment/NoPaywaiting.dart';
+import 'package:orderly_app/payment/PaymentManagerOrderly.dart';
+import 'package:orderly_app/payment/paymentOrder.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -192,6 +195,7 @@ class _MENUState extends State<MENU> {
 Widget build(BuildContext context) {
   // Initialize categoryGroups to group products by category
   Map<String, List<QueryDocumentSnapshot>> categoryGroups = {};
+  
 
   // Use FutureBuilder to wait for data to load
   return FutureBuilder(
@@ -231,9 +235,51 @@ Widget build(BuildContext context) {
           // Get the screen width
           double screenWidth = MediaQuery.of(context).size.width;
           int gridCount = screenWidth < 600 ? 2 : 4; // Adjust grid column count based on screen width
+          return StreamBuilder<DocumentSnapshot> (
+            stream: managerPayStream(),
+            builder: ( context, streamSnapshot) {
+              if (streamSnapshot.hasError) {
+                print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                return Text("Error: ${streamSnapshot.error}");
+              }
+              if (streamSnapshot.connectionState == ConnectionState.waiting) {
+                return Text("Cargando cambios en ManagerPay...");
+              }
 
-          // Create the UI
-          return DefaultTabController(
+              // Actualizar la UI basado en los cambios en tiempo real
+              List<dynamic> managerPay = (streamSnapshot.data?.data() as Map<String, dynamic>)['ManagerPay'] ?? [];
+              print("ManagerPay actualizado con ${managerPay.length} elementos");
+              print(managerPay);
+
+              bool userInList = managerPay.any((item) => item['UserId'] == FirebaseAuth.instance.currentUser!.uid && item['WillPay'] == true);
+              bool usernotInList = managerPay.any((item) => item['UserId'] == FirebaseAuth.instance.currentUser!.uid && item['WillPay'] == false);
+
+              if (userInList) {
+                  // Usando Future.microtask para evitar excepciones de modificación de estado durante la construcción
+                  Future.microtask(() =>
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentOrder(InvoiceProductsStream(), widget.scannedResult)))
+                  );
+              } 
+
+              if (usernotInList) {
+                  // Usando Future.microtask para evitar excepciones de modificación de estado durante la construcción
+                  Future.microtask(() =>
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => NoPayWaiting()))
+                  );
+              } 
+              
+
+              // if (managerPay.contains(FirebaseAuth.instance.currentUser!.uid)) {
+              //   // Usando Future.microtask para evitar excepciones de modificación de estado durante la construcción
+              //     Future.microtask(() =>
+              //     Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentOrder(InvoiceProductsStream())))
+              //   );
+              // }
+
+
+
+
+              return DefaultTabController(
               length: categoryGroups.length, // Set the number of tabs based on the number of categories
               child: Scaffold(
                   backgroundColor: Colors.white,
@@ -357,7 +403,7 @@ Widget build(BuildContext context) {
       ),
     ),
 
-    const SizedBox(height: 10, width: 110,),
+    const SizedBox(height: 10, width: 90,),
     // Fotos de usuarios en línea
     Expanded(
   child: Row(
@@ -572,6 +618,13 @@ Center(
 
               ),
           );
+
+            }
+          
+          
+          );
+          // Create the UI
+          
       },
   );
 }
@@ -919,8 +972,10 @@ child:SingleChildScrollView(
 
   // Mapa de datos para la orden con el ID único
   Map<String, dynamic> orderData = {
+    'UserId' : firebaseuid,
     'orderId': orderId, // Agregar el campo de ID único
     'OrderUrl': widget.scannedResult,
+    'OrdenPago': 0,
     'photouser': widget.photoUrl,
     'productName': nombreOrden,
     'description': descripcionOrden,
@@ -1064,13 +1119,14 @@ Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSe
   );
 }
 
-
-
 void _showCart() {
     List<String> urlSegments = widget.scannedResult.split("/");
 
     String firestorepath1 = "/${urlSegments[1]}/${urlSegments[2]}/${urlSegments[3]}/${urlSegments[4]}/${urlSegments[5]}/${urlSegments[6]}/${urlSegments[7]}";
     String firestorepath2 = urlSegments[8];
+    bool flag = false;
+    final aux;
+    Map<String, bool> isChecked = {}; // Estado para cada checkbox
 
     String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
 
@@ -1078,11 +1134,13 @@ void _showCart() {
 
     showModalBottomSheet<void>(
     context: context,
+    isScrollControlled: true,
     builder: (BuildContext context) {
         return StatefulBuilder(
             builder: (context, setState) {
+              
                 return Container(
-                    height: MediaQuery.of(context).size.height * 0.5, // Establece la altura a la mitad de la pantalla
+                    height: MediaQuery.of(context).size.height * 0.88, // Establece la altura a la mitad de la pantalla
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
                         color: Colors.white,
@@ -1099,16 +1157,22 @@ void _showCart() {
                             ),
                         ],
                     ),
+                    
                     child: StreamBuilder<DocumentSnapshot>(
                         stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
                         builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                             if (snapshot.connectionState == ConnectionState.waiting) {
                                 return Center(child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
+                              print("aaaaaaaaaaaaaaa");
                                 return Center(child: Text('Error: ${snapshot.error}'));
                             } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                                print("aaaaaaaaaaaaaaa");
                                 return Center(child: Text('No se encontraron datos'));
-                            } else {
+                            }
+                              else {
+                           
+                              print("aaaaaaaaaaaaaaa");
                                 final orderData = snapshot.data!.data() as Map<String, dynamic>;
 
                                 Map<String, List<Map<String, dynamic>>> groupedItems = {};
@@ -1119,6 +1183,9 @@ void _showCart() {
                                         for (var item in itemList) {
                                             if (item is Map<String, dynamic>) {
                                                 String photouser = item['photouser'];
+                                                 if (!isChecked.containsKey(photouser)) {
+                                                        isChecked[photouser] = flag; // Inicializa la checkbox en falso si es la primera vez
+                                                    }
                                                 if (groupedItems.containsKey(photouser)) {
                                                     groupedItems[photouser]?.add(item);
                                                 } else {
@@ -1130,21 +1197,24 @@ void _showCart() {
                                 }
 
                                 return Container(
-                                    padding: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(10),
+                        child: Column(
+                            children: [
+                                Expanded(
                                     child: ListView.builder(
                                         itemCount: groupedItems.length,
                                         itemBuilder: (context, index) {
                                             final photouserKey = groupedItems.keys.elementAt(index);
                                             final itemsForUser = groupedItems[photouserKey];
+                                            
                                             double totalPrice = itemsForUser!.fold(0.0, (sum, item) => sum + item['price'] + (item['selectedAdditionals'] as List<dynamic>).fold(0.0, (sum, additional) => sum + additional['price']));
-
                                             return Card(
                                                 elevation: 0.0,
                                                 color: Colors.white,
                                                 margin: EdgeInsets.symmetric(vertical: 8.0),
                                                 shape: RoundedRectangleBorder(
                                                     borderRadius: BorderRadius.circular(15.0),
-                                                    side: BorderSide(color: const Color.fromARGB(255, 238, 238, 238)),
+                                                    side: BorderSide(color: Color.fromARGB(255, 224, 224, 224)),
                                                 ),
                                                 child: Column(
                                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1153,18 +1223,21 @@ void _showCart() {
                                                             padding: EdgeInsets.all(8.0),
                                                             child: Row(
                                                                 children: [
-                                                                    if (photouserKey != null)
-                                                                        CircleAvatar(
-                                                                            radius: 15,
-                                                                            backgroundImage: NetworkImage(photouserKey),
-                                                                            backgroundColor: Colors.transparent,
-                                                                        ),
+                                                                    CircleAvatar(
+                                                                          radius: 15,
+                                                                          backgroundImage: NetworkImage(photouserKey),
+                                                                          backgroundColor: Colors.transparent,
+                                                                      ),
                                                                     SizedBox(width: 10),
-                                                                    Text(
-                                                                        'Total a pagar: \$${formatter.format(totalPrice)}',
-                                                                        style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
+                                                                    Row(
+                                                                      children: [
+                                                                        Text(
+                                                                          'Total a pagar: \$${formatter.format(totalPrice)}',
+                                                                          style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
+                                                                        ),       
+                                                                        ],
                                                                     ),
-                                                                    Spacer(),
+                                                                    Spacer(),                                               
                                                                     IconButton(
                                                                         icon: Icon(Icons.close),
                                                                         onPressed: () {
@@ -1183,72 +1256,103 @@ void _showCart() {
                                                                 ],
                                                             ),
                                                         ),
-                                                        ...itemsForUser.map((item) {
-                                                            return ListTile(
-                                                                leading: Container(
-                                                                    decoration: BoxDecoration(
-                                                                        borderRadius: BorderRadius.circular(8.0),
-                                                                        border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
-                                                                    ),
-                                                                    child: ClipRRect(
-                                                                        borderRadius: BorderRadius.circular(8.0),
-                                                                        child: Image.network(
-                                                                            item['imageUrl'],
-                                                                            height: 50,
-                                                                            width: 50,
-                                                                            fit: BoxFit.fill,
+                                                        Divider(
+                                                                color: Colors.grey.shade300, // El color de la línea divisoria
+                                                                thickness: 1, // El grosor de la línea
+                                                              ),
+                                                        ...itemsForUser.map<Widget>((item) {
+                                                            return Column(
+                                                                children: [
+                                                                    ListTile(
+                                                                      
+                                                                        leading: Container(
+                                                                          
+                                                                            decoration: BoxDecoration(
+                                                                                borderRadius: BorderRadius.circular(8.0),
+                                                                                border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
+                                                                            ),
+                                                                            child: ClipRRect(
+                                                                                borderRadius: BorderRadius.circular(8.0),
+                                                                                child: Image.network(
+                                                                                    item['imageUrl'],
+                                                                                    height: 70,
+                                                                                    width: 70,
+                                                                                    fit: BoxFit.cover,
+                                                                                ),
+                                                                            ),
                                                                         ),
-                                                                    ),
-                                                                ),
-                                                                title: Text(
-                                                                    item['productName'],
-                                                                    style: TextStyle(fontFamily: "Poppins-l", fontSize: 13, fontWeight: FontWeight.bold),
-                                                                ),
-                                                                subtitle: Column(
-                                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                                    children: [
-                                                                        Text(
-                                                                            'Precio: \$${formatter.format(item['price'])}',
+                                                                        
+                                                                        title: Text(
+                                                                            item['productName'],
                                                                             style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
                                                                         ),
-                                                                        if (item['selectedAdditionals'] != null && item['selectedAdditionals'] is Iterable)
-                                                                            ...item['selectedAdditionals'].map<Widget>((additional) {
-                                                                                return Row(
-                                                                                    children: [
-                                                                                        Container(
-                                                                                            decoration: BoxDecoration(
-                                                                                                borderRadius: BorderRadius.circular(8.0),
-                                                                                                border: Border.all(color: Colors.grey.shade300),
-                                                                                            ),
-                                                                                            child: ClipRRect(
-                                                                                                borderRadius: BorderRadius.circular(8.0),
-                                                                                                child: Image.network(
-                                                                                                    additional['photo'],
-                                                                                                    height: 30,
-                                                                                                    width: 30,
-                                                                                                    fit: BoxFit.cover,
-                                                                                                ),
-                                                                                            ),
-                                                                                        ),
-                                                                                        SizedBox(width: 10),
-                                                                                        Column(
-                                                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                    
+                                                                        
+                                                                        subtitle: Column(
+                                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                                            children: [
+                                                                                Text(
+                                                                                    'Precio: ${formatter.format(item['price'])}',
+                                                                                    style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold, color: Colors.purple),
+                                                                                ),
+                                                                                ...item['selectedAdditionals'].map<Widget>((additional) {
+                                                                                    return Padding(
+                                                                                      padding: EdgeInsets.only(top: 8.0, bottom: 8.0), // Agrega un poco de padding inferior para espaciar los divisores
+                                                                                      child: Column(
+                                                                                        children: [
+                                                                                          Row(
                                                                                             children: [
-                                                                                                Text(
-                                                                                                    'Adicional: ${additional['name']}',
-                                                                                                    style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
+                                                                                              // Columna para los textos, ocupa el espacio necesario
+                                                                                              Expanded(
+                                                                                                child: Column(
+                                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                  children: [
+                                                                                                    Text(
+                                                                                                      'Adicional: ${additional['name']}',
+                                                                                                      style: TextStyle(fontFamily: "Poppins-l", fontSize: 10, fontWeight: FontWeight.bold),
+                                                                                                    ),
+                                                                                                    Text(
+                                                                                                      'Precio: ${formatter.format(additional['price'])}',
+                                                                                                      style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold, color: Colors.purple),
+                                                                                                    ),
+                                                                                                  ],
                                                                                                 ),
-                                                                                                Text(
-                                                                                                    'Precio: \$${formatter.format(additional['price'])}',
-                                                                                                    style: TextStyle(fontFamily: "Poppins-l", fontSize: 11, fontWeight: FontWeight.bold),
+                                                                                              ),
+                                                                                              // Espaciador para empujar la imagen hacia la derecha
+                                                                                              Spacer(),
+                                                                                              // Contenedor para la imagen, al final de la fila
+                                                                                              Container(
+                                                                                                decoration: BoxDecoration(
+                                                                                                  borderRadius: BorderRadius.circular(8.0),
+                                                                                                  border: Border.all(color: Colors.grey.shade300),
                                                                                                 ),
+                                                                                                child: ClipRRect(
+                                                                                                  borderRadius: BorderRadius.circular(8.0),
+                                                                                                  child: Image.network(
+                                                                                                    additional['photo'],
+                                                                                                    height: 40,
+                                                                                                    width: 40,
+                                                                                                    fit: BoxFit.cover,
+                                                                                                  ),
+                                                                                                ),
+                                                                                              ),
                                                                                             ],
-                                                                                        ),
-                                                                                    ],
-                                                                                );
-                                                                            }).toList(),
-                                                                    ],
-                                                                ),
+                                                                                          ),
+                                                                                          // Añadir un divisor después de cada fila
+                                                                                          Divider(
+                                                                                            color: Colors.grey.shade400, // Ajusta el color según tu preferencia
+                                                                                            thickness: 1, // Espesor del divisor
+                                                                                          ),
+                                                                                        ],
+                                                                                      ),
+                                                                                    );
+
+                                                                                }).toList(),
+                                                                            ],
+                                                                        ),
+                                                                    ),
+                                                                      // Agrega un divisor después de cada ListTile
+                                                                ],
                                                             );
                                                         }).toList(),
                                                     ],
@@ -1256,17 +1360,88 @@ void _showCart() {
                                             );
                                         },
                                     ),
-                                );
-                            }
-                        },
-                    ),
-                );
-            },
-        );
-    },
+                                ),
+                                ElevatedButton(
+                        onPressed: () {
+  // Acción para "Pasar al pago"
+  final itemsForUser = groupedItems;            
+  print(itemsForUser);
+
+  // Navega a la nueva pantalla
+  Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => PaymentManagerOrderly(itemsForUser, widget.photoUrl, firestorepath1, firestorepath2, widget.scannedResult),
+  ),
 );
 
+},
+
+                        style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white, // Text color
+                            backgroundColor: Colors.purple,
+                            padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
+                            minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
+                        ),
+                                                    child: Text(
+                                                    'Pasar al pago',
+                                                    style: TextStyle(
+                                                        fontSize: 12,  // Tamaño de la fuente
+                                                        fontWeight: FontWeight.bold,  // Grosor de la fuente
+                                                        color: Colors.white,  // Color del texto
+                                                        fontFamily: 'Poppins-l',  // Tipo de fuente
+                                                    ),
+                                                )
+
+                                                ),
+
+                                                ElevatedButton(
+  onPressed: fetchAndPrintManagerPay,
+  child: Text("Imprimir ManagerPay"),
+  style: ElevatedButton.styleFrom(
+    foregroundColor: Colors.white, backgroundColor: Colors.blue,
+  ),
+)
+
+
+                                                        ],
+                                                    ),
+                                                );
+
+                                                }
+                                            },
+                                        ),
+                                    );
+                                },
+                            );
+                        },
+                    );
+
 }
+
+Stream<DocumentSnapshot> managerPayStream() {
+  String direction = "${widget.scannedResult}/pagos/pagar";
+  return FirebaseFirestore.instance.doc(direction).snapshots();
+}
+
+Stream <Map<String, dynamic>> InvoiceProductsStream() {
+    List<String> urlSegments = widget.scannedResult.split("/");
+
+    String firestorePath1 = "/${urlSegments[1]}/${urlSegments[2]}/${urlSegments[3]}/${urlSegments[4]}/${urlSegments[5]}/${urlSegments[6]}/${urlSegments[7]}";
+    String firestorePath2 = urlSegments[8];
+
+    return FirebaseFirestore.instance.collection(firestorePath1).doc(firestorePath2).snapshots().map((snapshot) {
+        if (snapshot.exists) {
+            final orderData = snapshot.data() as Map<String, dynamic>;
+            return orderData;
+        } else {
+            // Devuelve un mapa vacío o un mapa con un mensaje de error
+            return {"error": "No data available"};
+        }
+        
+    });
+}
+
 
 Stream<int> countTotalOrderedProductsStream() {
     List<String> urlSegments = widget.scannedResult.split("/");
@@ -1297,8 +1472,6 @@ Stream<int> countTotalOrderedProductsStream() {
     });
 }
 
-
-
 Widget _showOnlineUsers() {
   List<String> urlSegments = widget.scannedResult.split("/");
 
@@ -1326,7 +1499,7 @@ Widget _showOnlineUsers() {
             for (var item in itemList) {
               if (item is Map<String, dynamic>) {
                 String photouser = item['photouser'];
-                if (photouser != null && photouser.contains("google")) {
+                if (photouser.contains("google")) {
                   uniqueUserPhotos.add(photouser);
                 }
               }
@@ -1402,6 +1575,32 @@ Widget _showOnlineUsers() {
       }
     },
   );
+
+  
+}
+void fetchAndPrintManagerPay() async {
+  String direction = "${widget.scannedResult}/pagos/pagar";
+  DocumentReference documentRef = FirebaseFirestore.instance.doc(direction);
+
+  try {
+    DocumentSnapshot snapshot = await documentRef.get();
+    if (snapshot.exists) {
+      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+      List<dynamic> managerPay = data['ManagerPay'];
+      if (managerPay.isNotEmpty) {
+        print("Elementos en ManagerPay:");
+        for (var userId in managerPay) {
+          print(userId);  // Imprimir cada ID del usuario
+        }
+      } else {
+        print("ManagerPay está vacío.");
+      }
+    } else {
+      print("No se encontró el documento en la ruta: $direction");
+    }
+  } catch (e) {
+    print("Error al obtener datos de Firestore: $e");
+  }
 }
 
 

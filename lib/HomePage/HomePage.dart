@@ -296,7 +296,7 @@ Widget build(BuildContext context) {
           children: [
             Image.asset(
               "lib/images/logos/orderly_icon3.png",
-              height: 100,
+              height: 70,
               width: 70,
             ),
           ],
@@ -309,11 +309,11 @@ Widget build(BuildContext context) {
             },
           ),
         ],
-        toolbarHeight: 75,
+        toolbarHeight: 45,
       ),
       
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 0.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,62 +342,68 @@ Widget build(BuildContext context) {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 25),
-              Center(
-                child: SizedBox(
-                  width: 380,
-                  child: Material(
-                    elevation: 1.5,
-                    shadowColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: const BorderRadius.all(Radius.circular(30.0)),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _filterRestaurantes,
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(vertical: 8.0),
-                        hintText: 'Busca opciones cerca de ti',
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          borderSide: BorderSide(color: Color.fromARGB(131, 230, 230, 230), width: 5.001),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        hintStyle: TextStyle(
-                          fontFamily: 'Poppins-L',
-                          fontSize: 12,
-                          color: Color.fromARGB(255, 150, 150, 150),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 25),
-              Visibility(
-                visible: _showCategories,
+              const SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: Center(
                   child: SizedBox(
-                    height: 200,
-                    child: GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
+                    width: 380,
+                    child: Material(
+                      elevation: 1.5,
+                      shadowColor: Colors.grey.withOpacity(0.1),
+                      borderRadius: const BorderRadius.all(Radius.circular(30.0)),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: _filterRestaurantes,
+                        decoration: const InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                          hintText: 'Busca opciones cerca de ti',
+                          prefixIcon: Icon(Icons.search, color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                            borderSide: BorderSide(color: Color.fromARGB(131, 230, 230, 230), width: 5.001),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintStyle: TextStyle(
+                            fontFamily: 'Poppins-L',
+                            fontSize: 12,
+                            color: Color.fromARGB(255, 150, 150, 150),
+                          ),
+                        ),
                       ),
-                      itemCount: _categories.length,
-                      itemBuilder: (context, index) {
-                        return _buildButton(
-                          index,
-                          _emojis[index],
-                          _categories[index],
-                        );
-                      },
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 5),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Visibility(
+                  visible: _showCategories,
+                  child: Center(
+                    child: SizedBox(
+                      height: 190,
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemCount: _categories.length,
+                        itemBuilder: (context, index) {
+                          return _buildButton(
+                            index,
+                            _emojis[index],
+                            _categories[index],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 1),
               const Padding(
                 padding: EdgeInsets.only(left: 10.0),
                 child: Text(
@@ -412,55 +418,58 @@ Widget build(BuildContext context) {
                 ),
               ),
               const SizedBox(height: 10),
-              Container(
-                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).size.height / 1.71,),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _filteredRestaurantesData.length,
-                  itemBuilder: (context, index) {
-                    final Map<String, dynamic> restaurante = _filteredRestaurantesData[index].data() as Map<String, dynamic>;
-                    final nombre = restaurante['nombre_restaurante'];
-                    final urlLogo = restaurante['url'];
-                    final gpsPoint = restaurante['gps_point'] as GeoPoint;
-                    final categoria = restaurante['categoria'];
-                    final descripcion = restaurante['descripcion'];
-
-                    double distancia = 0.0;
-                    if (_currentPosition != null) {
-                      distancia = Geolocator.distanceBetween(
-                        _currentPosition!.latitude,
-                        _currentPosition!.longitude,
-                        gpsPoint.latitude,
-                        gpsPoint.longitude,
-                      ) / 1000;
-                    }
-
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.09),
-                            spreadRadius: 5,
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: RestauranteItem(
-                        nombre: nombre,
-                        urlLogo: urlLogo,
-                        gpsPoint: gpsPoint,
-                        categoria: categoria,
-                        distancia: distancia,
-                        descripcion: descripcion,
-                        isSelected: _currentOpenRestaurant?.nombre == nombre,
-                        currentPosition: _currentPosition,
-                      ),
-                    );
-                  },
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).size.height / 1.31,),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _filteredRestaurantesData.length,
+                    itemBuilder: (context, index) {
+                      final Map<String, dynamic> restaurante = _filteredRestaurantesData[index].data() as Map<String, dynamic>;
+                      final nombre = restaurante['nombre_restaurante'];
+                      final urlLogo = restaurante['url'];
+                      final gpsPoint = restaurante['gps_point'] as GeoPoint;
+                      final categoria = restaurante['categoria'];
+                      final descripcion = restaurante['descripcion'];
+                
+                      double distancia = 0.0;
+                      if (_currentPosition != null) {
+                        distancia = Geolocator.distanceBetween(
+                          _currentPosition!.latitude,
+                          _currentPosition!.longitude,
+                          gpsPoint.latitude,
+                          gpsPoint.longitude,
+                        ) / 1000;
+                      }
+                
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.09),
+                              spreadRadius: 5,
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: RestauranteItem(
+                          nombre: nombre,
+                          urlLogo: urlLogo,
+                          gpsPoint: gpsPoint,
+                          categoria: categoria,
+                          distancia: distancia,
+                          descripcion: descripcion,
+                          isSelected: _currentOpenRestaurant?.nombre == nombre,
+                          currentPosition: _currentPosition,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
