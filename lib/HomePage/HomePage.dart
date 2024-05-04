@@ -378,31 +378,30 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(height: 5),
               Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Visibility(
-                  visible: _showCategories,
-                  child: Center(
-                    child: SizedBox(
-                      height: 190,
-                      child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                        ),
-                        itemCount: _categories.length,
-                        itemBuilder: (context, index) {
-                          return _buildButton(
-                            index,
-                            _emojis[index],
-                            _categories[index],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+  padding: const EdgeInsets.all(8.0),
+  child: Visibility(
+    visible: _showCategories,
+    child: Center(
+      child: SizedBox(
+        height: 115,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: _categories.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: _buildButton(
+                index,
+                _categories[index], // Enviar el nombre de la categoría en lugar del emoji
               ),
+            );
+          },
+        ),
+      ),
+    ),
+  ),
+),
+
               const SizedBox(height: 1),
               const Padding(
                 padding: EdgeInsets.only(left: 10.0),
@@ -539,79 +538,95 @@ Widget build(BuildContext context) {
 }
 
 
-  Widget _buildButton(int index, String emoji, String dishName) {
-    bool isSelected = index == _selectedButtonIndex;
-    double buttonWidth = 20 + dishName.length * 2;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedButtonIndex = index;
-          if (index >= 1 && index <= 5) {
-            double scrollOffset = index * (buttonWidth + 20);
-            _scrollController.animateTo(
-              scrollOffset,
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.ease,
-            );
-          }
-          _filterRestaurantesByCategory(dishName);
-        });
-      },
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        width: buttonWidth,
-        height: 60,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: isSelected ? const Color.fromARGB(255, 183, 71, 235) : Color.fromARGB(255, 243, 243, 243),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
-                ]
-              : [],
+Widget _buildButton(int index, String dishName) {
+  bool isSelected = index == _selectedButtonIndex;
+  double buttonSize = 100.0; // Tamaño deseado de las cajas
+
+  // Lista de rutas de las imágenes correspondientes a cada categoría
+  List<String> categoryImages = [
+    'lib/images/food_categories/burguer.png',
+    'lib/images/food_categories/pizza.jpg',
+    'lib/images/food_categories/pollo.png',
+    'lib/images/food_categories/sushi.jpg',
+    'lib/images/food_categories/hotdog.jpg',
+    'lib/images/food_categories/italiana.jpg',
+    'lib/images/food_categories/mexicana.jpg',
+    'lib/images/food_categories/mar.jpg',
+  ];
+
+  return GestureDetector(
+    onTap: () {
+      setState(() {
+        _selectedButtonIndex = index;
+        if (index >= 1 && index <= 5) {
+          double scrollOffset = index * (buttonSize + 20);
+          _scrollController.animateTo(
+            scrollOffset,
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.ease,
+          );
+        }
+        _filterRestaurantesByCategory(dishName);
+      });
+    },
+    child: AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: buttonSize,
+      height: buttonSize,
+      decoration: BoxDecoration(
+        color: isSelected ? const Color.fromARGB(255, 183, 71, 235) : Color.fromARGB(255, 243, 243, 243),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-        margin: const EdgeInsets.symmetric(horizontal: 1),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-              ),
-              child: Text(
-                emoji,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: isSelected ? Color.fromARGB(255, 236, 236, 236) : Color.fromARGB(255, 238, 238, 238),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: Offset(0, 3),
                 ),
-              ),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              dishName,
-              style: TextStyle(
-                fontSize: 9,
-                color: isSelected ? Colors.white : Colors.black,
-                fontFamily: "Poppins-l",
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+              ]
+            : [],
       ),
-    );
-  }
+      padding: const EdgeInsets.only(bottom: 10), // Ajuste el padding para empujar el texto hacia abajo
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start, // Alinea el contenido al final del contenedor
+        children: [
+          ClipRRect( // ClipRRect para redondear solo la parte superior de la imagen
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            child: Image.asset(
+              categoryImages[index], // Ruta de la imagen correspondiente a la categoría
+              width: 100, // Ancho de la imagen
+              height: 90, // Altura ajustada de la imagen
+              fit: BoxFit.cover, // Asegura que la imagen cubra el espacio disponible
+            ),
+          ),
+          const SizedBox(height: 1), // Espacio entre imagen y texto
+          Text(
+            dishName,
+            style: TextStyle(
+              fontSize: 9,
+              color: isSelected ? Colors.white : Colors.black,
+              fontFamily: "Poppins-l",
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   static const List<String> _emojis = [
     '🍔', '🍕', '🍗', '🍥', '🌭', '🇮🇹', '🇲🇽', '🐟',
