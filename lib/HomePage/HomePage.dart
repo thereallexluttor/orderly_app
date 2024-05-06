@@ -72,7 +72,7 @@ Widget build(BuildContext context) {
     return InkWell(
       onTap: () {},
       child: Container(
-        height: widget.isSelected ? 250 : 175, // Ajusta la altura según sea necesario
+        height: widget.isSelected ? 250 : 170, // Ajusta la altura según sea necesario
         child: Card(
           color: const Color.fromRGBO(255, 255, 255, 1),
           shadowColor: Colors.black,
@@ -87,6 +87,7 @@ Widget build(BuildContext context) {
                 children: [
                   _buildBanner(), // Método para construir el banner
                   Expanded(child: _buildContent()),
+                  
                    Divider(color: Colors.grey[300], thickness: 1, height: 1), 
                   
                 ],
@@ -105,14 +106,14 @@ Widget build(BuildContext context) {
 
   Widget _buildContent() {
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 1.0),
     child: Column(
       children: [
         Row(
           children: [
             Container(
               width: 50,
-              height: 10, // Nota: Este Container parece ser un placeholder; considera ajustar su propósito o eliminarlo si no es necesario.
+              height: 0, // Nota: Este Container parece ser un placeholder; considera ajustar su propósito o eliminarlo si no es necesario.
               decoration: BoxDecoration(
                 shape: BoxShape.rectangle,
                 borderRadius: BorderRadius.circular(25.0),
@@ -369,13 +370,13 @@ class _HomePageState extends State<HomePage> {
 
   if (shouldHide) {
     setState(() {
-      _scrollController2.animateTo(_scrollController2.position.maxScrollExtent, duration: Duration(milliseconds: 400), curve: Curves.fastOutSlowIn,);
+      _scrollController2.animateTo(_scrollController2.position.maxScrollExtent, duration: Duration(milliseconds: 100), curve: Curves.bounceInOut,);
       _isCarouselVisible = false;
       
     });
   } else if (shouldHide3 ) {
     setState(() {
-      _scrollController2.animateTo(0, duration: Duration(milliseconds: 400), curve: Curves.fastOutSlowIn,);
+      _scrollController2.animateTo(0, duration: Duration(milliseconds: 100), curve: Curves.bounceInOut,);
       _isCarouselVisible = true;
       
     });
@@ -593,7 +594,7 @@ const SizedBox(height: 5),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Container(
-                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).size.height / 1.9,),
+                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height+40 - MediaQuery.of(context).size.height / 1.7,),
                   child: ListView.builder(
                     controller: _scrollController3,
                     shrinkWrap: true,

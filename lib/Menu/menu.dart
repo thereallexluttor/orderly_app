@@ -147,6 +147,7 @@ class _MENUState extends State<MENU> {
       return snapshot;
     });
     _startTimer();
+    
   }
 
   @override
@@ -286,35 +287,24 @@ Widget build(BuildContext context) {
                   body: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                          const SizedBox(height: 30),
-                          
+                          const SizedBox(height: 20),
                           Column(
   crossAxisAlignment: CrossAxisAlignment.start, // Alinea los elementos a la izquierda
   children: [
     Stack(
       children: [
-        // Banner Scroll
-        CarouselSlider(
-          items: [
-            // Aquí puedes agregar los elementos del banner scroll
-            Image.network(bannersData['url1'] as String),
-            Image.network(bannersData['url2'] as String),
-            Image.network(bannersData['url3'] as String),
-          ],
-          options: CarouselOptions(
-            enlargeFactor: 0,
-            height: 110,
-            enlargeCenterPage: false,
-            autoPlay: true,
-            aspectRatio: 5.5,
-            autoPlayCurve: Curves.fastOutSlowIn,
-            enableInfiniteScroll: true,
-            autoPlayAnimationDuration: const Duration(milliseconds: 800),
-            viewportFraction: 0.8,
-          ),
-        ),
+        // Banner Image
+        ClipRRect(
+  borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)), // Redondea solo las esquinas inferiores
+  child: Image.network(
+    restaurantData['banner'] as String,
+    height: 170,
+    width: MediaQuery.of(context).size.width,
+    fit: BoxFit.cover,
+  ),
+),
 
-        // Botón de retroceso y foto de usuario de Google
+        // Botón de retroceso con fondo blanco e ícono negro
         Positioned(
           top: 8, // Ajusta la posición según tus necesidades
           left: 8,
@@ -326,24 +316,21 @@ Widget build(BuildContext context) {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
+                color: Colors.white, // Fondo blanco
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white, // Cambio de color a blanco
-                  width: 0.2,
-                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 4,
-                    offset: Offset(0, 2), // Cambia la posición de la sombra según tus necesidades
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: Offset(0, 1),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
                 size: 25,
-                color: Colors.white, // Cambio de color a blanco
+                color: Colors.black, // Icono negro
               ),
             ),
           ),
@@ -354,14 +341,6 @@ Widget build(BuildContext context) {
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 4,
-                  offset: Offset(0, 2), // Cambia la posición de la sombra según tus necesidades
-                ),
-              ],
             ),
             child: CircleAvatar(
               backgroundImage: widget.photoUrl.isNotEmpty ? NetworkImage(widget.photoUrl) : const AssetImage("lib/images/logos/default_avatar.png") as ImageProvider,
@@ -372,116 +351,125 @@ Widget build(BuildContext context) {
     ),
 
     // Información del restaurante debajo del Stack
-    Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-  mainAxisAlignment: MainAxisAlignment.end,
-  children: [
-    // Foto del restaurante
-    SizedBox(
-      width: 60,
-      height: 60,
-      child: Image.network(
-        restaurantData['url'] as String,
-        fit: BoxFit.contain,
-      ),
-    ),
-    const SizedBox(width: 7),
-    // Nombre del restaurante
-    Text(
-      restaurantData['nombre_restaurante'] as String,
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: 16,
-        fontFamily: "Poppins",
-        fontWeight: FontWeight.bold,
-      ),
-    ),
+    Transform.translate(
+      offset: Offset(0, -24), // Mueve todo el contenido de la columna hacia arriba
+      child: Container(
+        color: const Color.fromARGB(0, 255, 255, 255),
+        padding: const EdgeInsets.all(5.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                // Foto del restaurante
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: NetworkImage(restaurantData['url'] as String),
+                      fit: BoxFit.cover,
+                    ),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 3,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10,),
+                // Columna para Nombre y detalles del restaurante
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Nombre del restaurante
+                      Row(
+                        children: [
+                          SizedBox(height: 10,),
+                         
+                          SizedBox(width: 190,),
 
-    const SizedBox(height: 10, width: 90,),
-    // Fotos de usuarios en línea
-    Expanded(
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.end,
-    children: [
-      SizedBox(
-        height: 50,
-        child: _showOnlineUsers(),
-      ),
-    ],
-  ),
-),
+                          // Fotos de usuarios en línea
+                SizedBox(
+                  height: 30,
+                  child: _showOnlineUsers(),
+                ),
 
-  ],
-),
-
+                        ],
+                      ),
+                      SizedBox(height: 0), // Espacio entre nombre y calificación
+                      Row(
+                        children: [
+                           Text(
+                            restaurantData['nombre_restaurante'] as String,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )
+                      // Calificación y tiempo de entrega
+    //                   Row(
+    //                     children: [
+    //                       // Calificación
+    //                       Container(
+      
+    //   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2), // Ajusta el padding para un mejor aspecto
+    //   decoration: BoxDecoration(
+    //     color: Colors.amber.withOpacity(0.2), // Color dorado tenue
+    //     borderRadius: BorderRadius.circular(20), // Hace que el container sea ovalado
+    //   ),
+    //   child: Row(
+    //     mainAxisSize: MainAxisSize.min,
+    //     children: [
           
-        ],
+    //       Icon(Icons.star, color: Colors.amber, size: 12.8), // Icono de estrella en dorado
+    //       SizedBox(width: 0),
+    //       Text(
+    //         "${restaurantData['calificacion']}",
+    //         style: TextStyle(
+    //           fontFamily: "Poppins",
+    //           fontWeight: FontWeight.bold,
+    //           fontSize: 12.8,
+    //           color: const Color.fromARGB(255, 0, 0, 0),
+    //         ),
+    //       ),
+    //     ],
+    //   ),
+    // ),
+                          
+    //                       SizedBox(width: 10), // Espacio entre calificación y entrega
+    //                       // Tiempo de entrega
+    //                       Icon(Icons.access_time, color: Color.fromARGB(255, 0, 0, 0), size: 12.8, weight:200,), // Icono de reloj en gris
+    //                       SizedBox(width: 2),
+    //                       Text(
+    //                         '${restaurantData['tiempo_entrega']} min',
+    //                         style: TextStyle(
+    //                           color: const Color.fromARGB(255, 0, 0, 0),
+    //                           fontSize: 12.8,
+    //                           fontFamily: "Poppins",
+    //                         ),
+    //                       ),
+    //                     ],
+    //                   ),
+                    ],
+                  ),
+                ),
+                
+              ],
+            ),
+          ],
+        ),
       ),
     ),
   ],
 ),
-
-
-
-Center(
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Calificación:',
-            style: TextStyle(
-              color: Color.fromARGB(255, 175, 175, 175),
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              fontFamily: "Poppins-l",
-            ),
-          ),
-          Text(
-            ' ${restaurantData['calificacion']} ★',
-            style: TextStyle(
-              color: Colors.amber,
-              fontWeight: FontWeight.normal,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-      SizedBox(width: 16), // Ajusta el espaciado según sea necesario
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Entrega:',
-            style: TextStyle(
-              color: Color.fromARGB(255, 175, 175, 175),
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              fontFamily: "Poppins-l",
-            ),
-          ),
-          Text(
-            ' ${restaurantData['tiempo_entrega']} min',
-            style: TextStyle(
-              color: Colors.purple, // Usando purple como un aproximado al morado
-              fontWeight: FontWeight.normal,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    ],
-  ),
-),
-
 
 
 
@@ -490,29 +478,32 @@ Center(
                           
                           
                           // TabBar with tabs
-                          TabBar(
+                        // Asegurándote de que el TabBar no tenga padding innecesario
+TabBar(
+  tabAlignment: TabAlignment.center,
   isScrollable: true,
-  indicatorPadding: EdgeInsets.all(2), 
- 
+  labelPadding: EdgeInsets.symmetric(horizontal: 10), // Space between tabs
+  indicatorPadding: EdgeInsets.zero, // Asegúrate de que no hay padding en el indicador
+  padding: EdgeInsets.zero, // Elimina cualquier padding del TabBar
   tabs: categoryGroups.keys.map((String category) {
     return Tab(
       text: category,
     );
   }).toList(),
-  // Set the text style of the tabs
   labelStyle: TextStyle(
-    fontSize: screenWidth * 0.03,
+    fontSize: screenWidth * 0.036,
     fontWeight: FontWeight.bold,
     color: Colors.purple,
     fontFamily: 'Poppins-l',
   ),
   unselectedLabelStyle: TextStyle(
-    fontSize: screenWidth * 0.0305,
+    fontSize: screenWidth * 0.0335,
     fontWeight: FontWeight.normal,
     color: Colors.grey,
     fontFamily: 'Poppins',
   ),
 ),
+
 
                           // TabBarView to display content for each category
                           Expanded(
@@ -523,7 +514,7 @@ Center(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                   Padding(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                                                   ),
                                                   // Display products of the category in a 2-column grid layout
                                                   // Adjust GridView.builder
@@ -532,7 +523,7 @@ Center(
                                                       physics: const NeverScrollableScrollPhysics(),
                                                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                                           crossAxisCount: gridCount,
-                                                          childAspectRatio: 0.65,
+                                                          childAspectRatio: 0.85,
                                                           crossAxisSpacing: 0.0,
                                                           mainAxisSpacing: 1.0,
                                                       ),
@@ -550,69 +541,87 @@ Center(
                           ),
                       ],
                   ),
-                  floatingActionButton: Padding(
-    padding: EdgeInsets.all(1), // Adds padding to the right to move the button to the left
-    child: InkWell(
-        onTap: () {
-            _showCart();
-        },
+                  
+  floatingActionButton: Container(
+    margin: EdgeInsets.only(top: 60,left: 180), // Añade un margen en la parte superior para bajar el botón
+    child: Padding(
+      padding: EdgeInsets.all(1),
+      child: InkWell(
+        onTap: _showCart,
         child: Container(
-            constraints: BoxConstraints(
-                maxWidth: 380, // Set a maximum width for the container
-                minHeight: 48, // Set a minimum height for the container
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colors.purple,
-                boxShadow: [
-                    BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 1,
-                        blurRadius: 3,
-                        offset: const Offset(0, 1),
-                    ),
-                ],
-            ),
-            child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                    const Icon(Icons.shopping_cart, color: Colors.white),
-                    const SizedBox(width: 8),
-                    Text(
-                        "Ver tu orden",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Poppins-l"),
-                    ),
-                    StreamBuilder<int>(
-                        stream: countTotalOrderedProductsStream(),
-                        builder: (context, snapshot) {
-                            Widget indicator = snapshot.hasData && snapshot.data! > 0 ?
-                                Container(
-                                    margin: const EdgeInsets.only(left: 8),
-                                    padding: const EdgeInsets.all(2),
-                                    decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                    ),
-                                    constraints: BoxConstraints(
-                                        minWidth: 20,
-                                        minHeight: 20,
-                                    ),
-                                    child: Text(
-                                        snapshot.data!.toString(),
-                                        style: const TextStyle(color: Colors.purple, fontSize: 12),
-                                        textAlign: TextAlign.center,
-                                    ),
-                                ) : SizedBox(width: 20, height: 20); // Use a fixed-size empty box to keep layout consistent
-
-                            return indicator;
-                        }
-                    ),
-                ],
-            ),
+          constraints: BoxConstraints(
+            maxWidth: 200,
+            minHeight: 48,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30),
+            color: Colors.purple,
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromARGB(255, 193, 119, 253).withOpacity(0.5),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              
+              SizedBox(width: 8),
+              Text(
+                "Ver tu orden",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Poppins-l", fontSize: 11),
+              ),
+              
+            ],
+          ),
         ),
-    )
-),
+      ),
+    ),
+  ),
+  floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+  bottomNavigationBar: BottomAppBar(
+    notchMargin: 10.5,
+    shape: CircularNotchedRectangle(),
+    color: const Color.fromARGB(255, 255, 255, 255),
+    height: 64,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        StreamBuilder<int>(
+                stream: countTotalOrderedProductsStream(),
+                builder: (context, snapshot) {
+                  Widget indicator = snapshot.hasData && snapshot.data! > 0
+                      ? Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: BoxConstraints(
+                            minWidth: 20,
+                            minHeight: 20,
+                          ),
+                          child: Text(
+                            '${snapshot.data!.toString()} Productos',
+                            style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 12, fontFamily: "Poppins", fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      : SizedBox(width: 20, height: 20);
+                  return indicator;
+                }
+              ),
+      ],
+      mainAxisSize: MainAxisSize.max,
+    ),
+  ),
+
+
 
 
 
@@ -639,7 +648,7 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
     );
     // Modificado el padding para desplazar un poco a la derecha la tarjeta
     return Padding(
-        padding: const EdgeInsets.fromLTRB(30.0, 8.0, 8.0, 8.0),  // Aumentado el espacio a la izquierda
+        padding: const EdgeInsets.fromLTRB(25.0, 8.0, 8.0, 8.0),  // Aumentado el espacio a la izquierda
         child: Stack(
             children: [
                 Column(
@@ -650,9 +659,14 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
                                 borderRadius: BorderRadius.circular(20.0),
                                 border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
                             ),
+                            child: InkWell(
+                              onTap: () {
+                            _showAditionalsScreen(producto['adiciones'], producto);
+                        },
                             child: SizedBox(
+                              
                                 width: 130,
-                                height: 160,
+                                height: 130,
                                 child: ClipRRect(
                                     borderRadius: BorderRadius.circular(20.0),
                                     child: Image.network(
@@ -661,6 +675,7 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
                                     ),
                                 ),
                             ),
+                        ),
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
@@ -679,7 +694,7 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
                                             producto['descripcion'] as String,
                                             style: const TextStyle(fontSize: 10, fontFamily: "Poppins", color: Colors.grey),
                                             overflow: TextOverflow.ellipsis,
-                                            maxLines: 3,
+                                            maxLines: 1,
                                         ),
                                     ),
                                 ],
@@ -693,36 +708,8 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
                         ),
                     ],
                 ),
-                Positioned(
-                    top: 0,
-                    right: 10,
-                    child: InkWell(
-                        onTap: () {
-                            _showAditionalsScreen(producto['adiciones'], producto);
-                        },
-                        child: Container(
-                            padding: const EdgeInsets.all(6.0),
-                            decoration: BoxDecoration(
-                                color: const Color.fromARGB(255, 247, 253, 246),
-                                borderRadius: BorderRadius.circular(25.0),
-                                border: Border.all(
-                                    color: Colors.green, // Color del contorno igual al del icono '+'
-                                    width: 5.0 // Grosor del borde
-                                ),
-                                boxShadow: [
-                                    BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        spreadRadius: 1,
-                                        blurRadius: 3,
-                                        offset: const Offset(0,0),
-                                    ),
-                                ],
-                            ),
-                            child: const Icon(Icons.add, color: Colors.green,),
-                        )
-
-                                            ),
-                                        ),
+                
+                
                                     ],
                                 ),
                             );
