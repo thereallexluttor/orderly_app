@@ -134,14 +134,14 @@ flutter:
   fonts:
     - family: Poppins
       fonts:
-        - asset: lib/fonts/Poppins-Black.ttf
-        - asset: lib/fonts/Poppins-Light.ttf
+        - asset: lib/fonts/TT-Norms-Pro.otf
+        
     - family: Poppins-Bold
       fonts:
-        - asset: lib/fonts/Poppins-Bold.ttf
+        - asset: lib/fonts/TT-Norms-Pro-Bold.otf
     - family: Poppins-L
       fonts:
-        - asset: lib/fonts/Poppins-Light.ttf
+        - asset: lib/fonts/TT-Norms-Pro-Light.otf
     - family: Poppins-EL
       fonts:
         - asset: lib/fonts/Poppins-ExtraLight.ttf

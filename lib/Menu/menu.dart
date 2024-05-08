@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:orderly_app/payment/NoPaywaiting.dart';
 import 'package:orderly_app/payment/PaymentManagerOrderly.dart';
@@ -283,7 +284,7 @@ Widget build(BuildContext context) {
               return DefaultTabController(
               length: categoryGroups.length, // Set the number of tabs based on the number of categories
               child: Scaffold(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Color.fromARGB(255, 255, 255, 255),
                   body: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -291,51 +292,50 @@ Widget build(BuildContext context) {
                           Column(
   crossAxisAlignment: CrossAxisAlignment.start, // Alinea los elementos a la izquierda
   children: [
-    Stack(
-      children: [
-        // Banner Image
-        ClipRRect(
-  borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)), // Redondea solo las esquinas inferiores
-  child: Image.network(
-    restaurantData['banner'] as String,
-    height: 170,
-    width: MediaQuery.of(context).size.width,
-    fit: BoxFit.cover,
-  ),
-),
+    
+//     Stack(
+//     alignment: Alignment.bottomLeft,
+//     children: <Widget>[
+//         Container(
+//             padding: EdgeInsets.only(top: 0),
+//             child: AspectRatio(aspectRatio: 1, child: Image.asset('assets/discover.png', fit: BoxFit.cover),),
+//         ),
+//         ClipRRect(
+//             borderRadius: new BorderRadius.circular(40.0),
+//             child: Image.asset('assets/user.jpg', height: 80, width: 80),
+//         ),
+//     ],
+// ),
 
-        // Botón de retroceso con fondo blanco e ícono negro
-        Positioned(
-          top: 8, // Ajusta la posición según tus necesidades
-          left: 8,
-          child: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white, // Fondo blanco
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 1,
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.arrow_back,
-                size: 25,
-                color: Colors.black, // Icono negro
-              ),
-            ),
+Stack(
+  children: <Widget>[
+    // Imagen principal dentro de un Container y ClipRRect
+    Container(
+      margin: EdgeInsets.only(bottom: 20, left: 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        child: Image.network(restaurantData['banner'] as String),
+      ),
+    ),
+    // Posicionar el CircleAvatar en la esquina inferior izquierda
+    Positioned(
+      left: 10,
+      bottom: 0,
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 30.0,
+            backgroundImage: NetworkImage(restaurantData['url'] as String),
+            backgroundColor: Color.fromARGB(255, 255, 255, 255),
           ),
-        ),
-        Positioned(
+           SizedBox(width: 210,),
+
+                          // Fotos de usuarios en línea
+               
+        ],
+      ),
+    ),
+    Positioned(
           top: 8, // Ajusta la posición según tus necesidades
           right: 8,
           child: Container(
@@ -347,15 +347,49 @@ Widget build(BuildContext context) {
             ),
           ),
         ),
-      ],
-    ),
+        Positioned(
+          top: 8, // Ajusta la posición según tus necesidades
+          left: 8,
+          child: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: Colors.white, // Fondo blanco
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.arrow_back,
+                size: 20,
+                color: Colors.black, // Icono negro
+              ),
+            ),
+          ),
+        ),
+  ],
+),
+
+   
+
+
 
     // Información del restaurante debajo del Stack
-    Transform.translate(
-      offset: Offset(0, -24), // Mueve todo el contenido de la columna hacia arriba
-      child: Container(
+    // Mueve todo el contenido de la columna hacia arriba
+       Container(
+        margin: EdgeInsets.only(top: 0,left: 0),
         color: const Color.fromARGB(0, 255, 255, 255),
-        padding: const EdgeInsets.all(5.0),
+        padding: const EdgeInsets.all(0.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,23 +397,11 @@ Widget build(BuildContext context) {
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                SizedBox(width: 15,),
                 // Foto del restaurante
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage(restaurantData['url'] as String),
-                      fit: BoxFit.cover,
-                    ),
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 3,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10,),
+                
+
+                
                 // Columna para Nombre y detalles del restaurante
                 Expanded(
                   child: Column(
@@ -389,238 +411,259 @@ Widget build(BuildContext context) {
                       Row(
                         children: [
                           SizedBox(height: 10,),
-                         
-                          SizedBox(width: 190,),
-
-                          // Fotos de usuarios en línea
-                SizedBox(
-                  height: 30,
-                  child: _showOnlineUsers(),
-                ),
-
-                        ],
-                      ),
-                      SizedBox(height: 0), // Espacio entre nombre y calificación
-                      Row(
-                        children: [
-                           Text(
+                          Text(
                             restaurantData['nombre_restaurante'] as String,
                             style: TextStyle(
                               color: Colors.black,
-                              fontSize: 16,
-                              fontFamily: "Poppins",
+                              fontSize: 17.9,
+                              fontFamily: "Poppins-Bold",
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
-                      )
-                      // Calificación y tiempo de entrega
-    //                   Row(
-    //                     children: [
-    //                       // Calificación
-    //                       Container(
+
+                          SizedBox(width: 150),
+
+                          Container(
       
-    //   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2), // Ajusta el padding para un mejor aspecto
-    //   decoration: BoxDecoration(
-    //     color: Colors.amber.withOpacity(0.2), // Color dorado tenue
-    //     borderRadius: BorderRadius.circular(20), // Hace que el container sea ovalado
-    //   ),
-    //   child: Row(
-    //     mainAxisSize: MainAxisSize.min,
-    //     children: [
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Ajusta el padding para un mejor aspecto
+      decoration: BoxDecoration(
+        color: Colors.amber.withOpacity(0.2), // Color dorado tenue
+        borderRadius: BorderRadius.circular(20), // Hace que el container sea ovalado
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           
-    //       Icon(Icons.star, color: Colors.amber, size: 12.8), // Icono de estrella en dorado
-    //       SizedBox(width: 0),
-    //       Text(
-    //         "${restaurantData['calificacion']}",
-    //         style: TextStyle(
-    //           fontFamily: "Poppins",
-    //           fontWeight: FontWeight.bold,
-    //           fontSize: 12.8,
-    //           color: const Color.fromARGB(255, 0, 0, 0),
-    //         ),
-    //       ),
-    //     ],
-    //   ),
-    // ),
+          Icon(Icons.star, color: Colors.amber, size: 10.8), // Icono de estrella en dorado
+          SizedBox(width: 0),
+          Text(
+            "${restaurantData['calificacion']}",
+            style: TextStyle(
+              fontFamily: "Poppins",
+              fontWeight: FontWeight.bold,
+              fontSize: 10.8,
+              color: Color.fromARGB(255, 116, 116, 116),
+            ),
+          ),
+        ],
+      ),
+    ),
                           
-    //                       SizedBox(width: 10), // Espacio entre calificación y entrega
-    //                       // Tiempo de entrega
-    //                       Icon(Icons.access_time, color: Color.fromARGB(255, 0, 0, 0), size: 12.8, weight:200,), // Icono de reloj en gris
-    //                       SizedBox(width: 2),
-    //                       Text(
-    //                         '${restaurantData['tiempo_entrega']} min',
-    //                         style: TextStyle(
-    //                           color: const Color.fromARGB(255, 0, 0, 0),
-    //                           fontSize: 12.8,
-    //                           fontFamily: "Poppins",
-    //                         ),
-    //                       ),
-    //                     ],
-    //                   ),
+                          SizedBox(width: 10), // Espacio entre calificación y entrega
+                          // Tiempo de entrega
+                          Icon(Icons.access_time, color: Color.fromARGB(255, 116, 116, 116), size: 10.8, weight:200,), // Icono de reloj en gris
+                          SizedBox(width: 2),
+                          Text(
+                            '${restaurantData['tiempo_entrega']} min',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 116, 116, 116),
+                              fontSize: 10.8,
+                              fontFamily: "Poppins",
+                            ),
+                          ),
+                         
+                         
+
+                        ],
+                      ),
+
+                      Text(
+                            '${restaurantData['descripcion']}',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 116, 116, 116),
+                              fontSize: 13.5,
+                              fontFamily: "Poppins",
+                            ),
+                          ),
+                      
+                     
+                     
+                      
                     ],
+
+                    
                   ),
                 ),
                 
               ],
             ),
-          ],
-        ),
+
+            TabBar(
+      tabAlignment: TabAlignment.center,
+      isScrollable: true,
+      labelPadding: EdgeInsets.symmetric(horizontal: 10), // Space between tabs
+      indicatorPadding: EdgeInsets.zero, // Asegúrate de que no hay padding en el indicador
+      padding: EdgeInsets.zero, // Elimina cualquier padding del TabBar
+      tabs: categoryGroups.keys.map((String category) {
+        return Tab(
+          text: category,
+        );
+      }).toList(),
+      labelStyle: TextStyle(
+        fontSize: screenWidth * 0.036,
+        fontWeight: FontWeight.bold,
+        color: Colors.purple,
+        fontFamily: 'Poppins-Bold',
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontSize: screenWidth * 0.033,
+        fontWeight: FontWeight.normal,
+        color: Colors.grey,
+        fontFamily: 'Poppins',
       ),
     ),
+          ],
+        ),
+
+        
+      ),
+  
   ],
 ),
 
-
-
-                          const SizedBox(height: 0),
-
                           
                           
-                          // TabBar with tabs
+                       // TabBar with tabs
                         // Asegurándote de que el TabBar no tenga padding innecesario
-TabBar(
-  tabAlignment: TabAlignment.center,
-  isScrollable: true,
-  labelPadding: EdgeInsets.symmetric(horizontal: 10), // Space between tabs
-  indicatorPadding: EdgeInsets.zero, // Asegúrate de que no hay padding en el indicador
-  padding: EdgeInsets.zero, // Elimina cualquier padding del TabBar
-  tabs: categoryGroups.keys.map((String category) {
-    return Tab(
-      text: category,
-    );
-  }).toList(),
-  labelStyle: TextStyle(
-    fontSize: screenWidth * 0.036,
-    fontWeight: FontWeight.bold,
-    color: Colors.purple,
-    fontFamily: 'Poppins-l',
-  ),
-  unselectedLabelStyle: TextStyle(
-    fontSize: screenWidth * 0.0335,
-    fontWeight: FontWeight.normal,
-    color: Colors.grey,
-    fontFamily: 'Poppins',
-  ),
-),
+    
 
 
-                          // TabBarView to display content for each category
-                          Expanded(
-                              child: TabBarView(
-                                  children: categoryGroups.entries.map((entry) {
-                                      return SingleChildScrollView(
-                                          child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                  Padding(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                                                  ),
-                                                  // Display products of the category in a 2-column grid layout
-                                                  // Adjust GridView.builder
-                                                  GridView.builder(
-                                                      shrinkWrap: true,
-                                                      physics: const NeverScrollableScrollPhysics(),
-                                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                                          crossAxisCount: gridCount,
-                                                          childAspectRatio: 0.85,
-                                                          crossAxisSpacing: 0.0,
-                                                          mainAxisSpacing: 1.0,
+                              // TabBarView to display content for each category
+                              Expanded(
+                                  child: TabBarView(
+                                      children: categoryGroups.entries.map((entry) {
+                                          return SingleChildScrollView(
+                                              child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                      Padding(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                                                       ),
+                                                      // Display products of the category in a 2-column grid layout
+                                                      // Adjust GridView.builder
+                                                      ListView.builder(
+                                                        
+                                                      shrinkWrap: true,
+                                                      physics: const NeverScrollableScrollPhysics(), // Asegura que la lista no sea desplazable si no es necesario
                                                       itemCount: entry.value.length,
                                                       itemBuilder: (context, index) {
-                                                          return _buildProductoItem(entry.value[index]);
+                                                        return _buildProductoItem(entry.value[index]);
                                                       },
-                                                  ),
+                                                    )
 
-                                              ],
-                                          ),
-                                      );
-                                  }).toList(),
+
+                                                  ],
+                                              ),
+                                          );
+                                      }).toList(),
+                                  ),
                               ),
-                          ),
                       ],
                   ),
                   
-  floatingActionButton: Container(
-    margin: EdgeInsets.only(top: 60,left: 180), // Añade un margen en la parte superior para bajar el botón
-    child: Padding(
-      padding: EdgeInsets.all(1),
-      child: InkWell(
-        onTap: _showCart,
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: 200,
-            minHeight: 48,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            color: Colors.purple,
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromARGB(255, 193, 119, 253).withOpacity(0.5),
-                spreadRadius: 1,
-                blurRadius: 3,
-                offset: const Offset(0, 1),
+ 
+  floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
+  floatingActionButton: StreamBuilder<int>(
+    stream: countTotalOrderedProductsStream(),
+    builder: (context, snapshot) {
+      if (snapshot.hasData && snapshot.data! > 0) { // Verifica si hay más de 0 productos
+        return Container(
+          margin: EdgeInsets.only(top: 80, left: 80),
+          child: Padding(
+            padding: EdgeInsets.all(0),
+            child: InkWell(
+              onTap: _showCart,
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: 130,
+                  minHeight: 40,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: Colors.purple,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color.fromARGB(255, 193, 119, 253).withOpacity(0.5),
+                      spreadRadius: 3,
+                      blurRadius: 3,
+                      offset: const Offset(1, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: const [
+                    SizedBox(width: 10),
+                    Text(
+                      "Ver tu orden",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Poppins", fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              
-              SizedBox(width: 8),
-              Text(
-                "Ver tu orden",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Poppins-l", fontSize: 11),
-              ),
-              
-            ],
-          ),
-        ),
-      ),
-    ),
+        );
+      } else {
+        return SizedBox.shrink(); // No muestra nada si no hay productos
+      }
+    }
   ),
-  floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-  bottomNavigationBar: BottomAppBar(
-    notchMargin: 10.5,
-    shape: CircularNotchedRectangle(),
-    color: const Color.fromARGB(255, 255, 255, 255),
-    height: 64,
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: <Widget>[
-        StreamBuilder<int>(
-                stream: countTotalOrderedProductsStream(),
-                builder: (context, snapshot) {
-                  Widget indicator = snapshot.hasData && snapshot.data! > 0
-                      ? Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: BoxConstraints(
-                            minWidth: 20,
-                            minHeight: 20,
-                          ),
-                          child: Text(
-                            '${snapshot.data!.toString()} Productos',
-                            style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 12, fontFamily: "Poppins", fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                      : SizedBox(width: 20, height: 20);
-                  return indicator;
-                }
-              ),
-      ],
-      mainAxisSize: MainAxisSize.max,
-    ),
+  bottomNavigationBar: StreamBuilder<int>(
+    stream: countTotalOrderedProductsStream(),
+    builder: (context, snapshot) {
+      if (snapshot.hasData && snapshot.data! > 0) {
+        return BottomAppBar(
+          notchMargin: 0.0,
+          elevation: 0.0,
+          color: Color.fromARGB(251, 255, 255, 255),
+          height: 84,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Color.fromARGB(251, 255, 255, 255),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  spreadRadius: 0,
+                  blurRadius: 2,
+                  offset: Offset(0, -1),
+                )
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  margin: const EdgeInsets.only(left: 0),
+                  padding: const EdgeInsets.all(0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0),
+                    shape: BoxShape.rectangle,
+                  ),
+                  constraints: BoxConstraints(
+                    minWidth: 100,
+                    minHeight: 20,
+                  ),
+                  child: Text(
+                    '${snapshot.data!.toString()} Productos',
+                    style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 12, fontFamily: "Poppins-l", fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                SizedBox(
+                  height: 50,
+                  child: _showOnlineUsers(),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else {
+        return SizedBox.shrink(); // No muestra nada si no hay productos
+      }
+    }
   ),
-
 
 
 
@@ -639,81 +682,101 @@ TabBar(
 }
 
 Widget _buildProductoItem(QueryDocumentSnapshot producto) {
-    // Define un formato para el dinero con separador de miles
-    final NumberFormat currencyFormat = NumberFormat('#,##0', 'es_CO');
-     ScreenUtil.init(
-      context,
-      designSize: Size(360, 690),
-      minTextAdapt: true,
-    );
-    // Modificado el padding para desplazar un poco a la derecha la tarjeta
-    return Padding(
-        padding: const EdgeInsets.fromLTRB(25.0, 8.0, 8.0, 8.0),  // Aumentado el espacio a la izquierda
-        child: Stack(
-            children: [
-                Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                        Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20.0),
-                                border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
-                            ),
-                            child: InkWell(
-                              onTap: () {
-                            _showAditionalsScreen(producto['adiciones'], producto);
-                        },
-                            child: SizedBox(
-                              
-                                width: 130,
-                                height: 130,
-                                child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    child: Image.network(
-                                        producto['url'] as String,
-                                        fit: BoxFit.cover,
-                                    ),
-                                ),
-                            ),
-                        ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                            width: 150,
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                    Text(
-                                        producto['NOMBRE_DEL_PRODUCTO'] as String,
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: "Poppins-l", fontSize: 11),
-                                    ),
-                                    const SizedBox(height: 0),
-                                    SizedBox(
-                                        width: 150,
-                                        child: Text(
-                                            producto['descripcion'] as String,
-                                            style: const TextStyle(fontSize: 10, fontFamily: "Poppins", color: Colors.grey),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                        ),
-                                    ),
-                                ],
-                            ),
-                        ),
-                        const SizedBox(height: 0),
-                        // Formatea el precio usando el formato definido
-                        Text(
-                            '\$${currencyFormat.format(producto['precio'])}',
-                            style: const TextStyle(fontSize: 12, fontFamily: "Poppins-l", fontWeight: FontWeight.bold, color: Colors.purple),
-                        ),
-                    ],
+  // Define un formato para el dinero con separador de miles
+  final NumberFormat currencyFormat = NumberFormat('#,##0', 'es_CO');
+  ScreenUtil.init(
+    context,
+    designSize: Size(360, 690),
+    minTextAdapt: true,
+  );
+  // Modificado el padding para desplazar un poco a la derecha la tarjeta
+  return Padding(
+    padding: const EdgeInsets.fromLTRB(15.0, 8.0, 13.0, 8.0),  // Ajuste de espacios uniforme
+    child: InkWell(
+      onTap: () {
+        _showAditionalsScreen(producto['adiciones'], producto);
+      },
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white, // Color de fondo del contenedor
+              borderRadius: BorderRadius.circular(10.0), // Borde redondeado
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 0.05,
+                  blurRadius: 1,
+                  offset: const Offset(0, 0),  // Sombra para profundidad
                 ),
-                
-                
-                                    ],
-                                ),
-                            );
-                        }
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 10,),
+                        Text(
+                          producto['NOMBRE_DEL_PRODUCTO'] as String,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: "Poppins-Bold", fontSize: 13.5),
+                        ),
+                        //SizedBox(height: 4),
+                        Text(
+                          producto['descripcion'] as String,
+                          style: const TextStyle(fontSize: 10.7, fontFamily: "Poppins", fontWeight: FontWeight.bold, color: Color.fromARGB(255, 116, 116, 116)),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          '\$${currencyFormat.format(producto['precio'])}',
+                          style: const TextStyle(fontSize: 10.7, fontFamily: "Poppins", fontWeight: FontWeight.w600, color: Color.fromARGB(255, 122, 122, 122)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(10.0),
+                    bottomRight: Radius.circular(10.0),
+                  ),
+                  child: Image.network(
+                    producto['url'] as String,
+                    width: 120,  // Ancho ajustado para hacerlo más estrecho
+                    height: 109,  // Altura igualada
+                    fit: BoxFit.fill,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 5,
+            right: 5,
+            child: Container(
+              width: 25,
+              height: 25,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                //border: Border.all(color: Color.fromARGB(255, 43, 43, 43), width: 0.7),
+              ),
+              child: Center(
+                child: Text('+', style: TextStyle(fontSize: 15, color: Colors.black, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 
                         List<OrderDetails> orders = [];
 

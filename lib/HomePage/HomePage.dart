@@ -128,10 +128,10 @@ Widget build(BuildContext context) {
                   Text(
                     widget.nombre,
                     style: TextStyle(
-                      fontFamily: "Poppins",
+                      fontFamily: "Poppins-Bold",
                       color: Color.fromARGB(255, 0, 0, 0),
                       fontWeight: FontWeight.bold,
-                      fontSize: 10, // Ajustado para mejorar la legibilidad
+                      fontSize: 11, // Ajustado para mejorar la legibilidad
                     ),
                   ),
                   SizedBox(width: 10),
@@ -318,9 +318,9 @@ class _HomePageState extends State<HomePage> {
   RestauranteItem? _currentOpenRestaurant;
   bool _showCategories = true;  // Controla la visibilidad de las categorías
   int _current = 0;  // Index del slider actual
-  final CarouselController _carouselController = CarouselController();  // Controlador para CarouselSlider
-  final ScrollController _scrollController2 = ScrollController();
-  final ScrollController _scrollController3 = ScrollController();
+  //final CarouselController _carouselController = CarouselController();  // Controlador para CarouselSlider
+  //final ScrollController _scrollController2 = ScrollController();
+  //final ScrollController _scrollController3 = ScrollController();
   bool _isCarouselVisible = true;
 
   
@@ -329,8 +329,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _getCurrentLocation();
     _fetchRestaurantesData();
-    _scrollController2.addListener(_scrollListener);
-    _scrollController3.addListener(_scrollListener);
+    //_scrollController2.addListener(_scrollListener);
+    //_scrollController3.addListener(_scrollListener);
     Timer.periodic(const Duration(minutes: 5), (timer) {
       _getCurrentLocation();
     });
@@ -353,34 +353,34 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   void dispose() {
-    _scrollController2.removeListener(_scrollListener);
-    _scrollController2.dispose();
-    _scrollController3.removeListener(_scrollListener);
-    _scrollController3.dispose();
+    // _scrollController2.removeListener(_scrollListener);
+    // _scrollController2.dispose();
+    // _scrollController3.removeListener(_scrollListener);
+    // _scrollController3.dispose();
     super.dispose();
   }
   void _scrollListener() {
   const thresholddown = 10;  // Establece un umbral de scroll para ocultar/mostrar el carrusel
-  bool shouldHide = _scrollController3.offset > thresholddown;
-  const thresholdup = 30;  // Establece un umbral de scroll para ocultar/mostrar el carrusel
-  bool shouldHide2 = _scrollController3.offset > thresholdup;
-  const thresholdup2 = 10;  // Establece un umbral de scroll para ocultar/mostrar el carrusel
-  bool shouldHide3 = _scrollController2.offset < thresholdup2;
+  // bool shouldHide = _scrollController3.offset > thresholddown;
+  // const thresholdup = 30;  // Establece un umbral de scroll para ocultar/mostrar el carrusel
+  // bool shouldHide2 = _scrollController3.offset > thresholdup;
+  // const thresholdup2 = 10;  // Establece un umbral de scroll para ocultar/mostrar el carrusel
+  // bool shouldHide3 = _scrollController2.offset < thresholdup2;
 
 
-  if (shouldHide) {
-    setState(() {
-      _scrollController2.animateTo(_scrollController2.position.maxScrollExtent, duration: Duration(milliseconds: 100), curve: Curves.bounceInOut,);
-      _isCarouselVisible = false;
+  // if (shouldHide) {
+  //   setState(() {
+  //     _scrollController2.animateTo(_scrollController2.position.maxScrollExtent, duration: Duration(milliseconds: 100), curve: Curves.bounceInOut,);
+  //     _isCarouselVisible = false;
       
-    });
-  } else if (shouldHide3 ) {
-    setState(() {
-      _scrollController2.animateTo(0, duration: Duration(milliseconds: 100), curve: Curves.bounceInOut,);
-      _isCarouselVisible = true;
+  //   });
+  // } else if (shouldHide3 ) {
+  //   setState(() {
+  //     _scrollController2.animateTo(0, duration: Duration(milliseconds: 100), curve: Curves.bounceInOut,);
+  //     _isCarouselVisible = true;
       
-    });
-  }
+  //   });
+  // }
 }
 
 
@@ -440,7 +440,7 @@ Widget build(BuildContext context) {
         child: SingleChildScrollView(
           
           
-          controller: _scrollController2,
+          //controller: _scrollController2,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -484,7 +484,7 @@ Widget build(BuildContext context) {
     mainAxisAlignment: MainAxisAlignment.center,
     children: _sliderImages.asMap().entries.map((entry) {
       return GestureDetector(
-        onTap: () => _carouselController.animateToPage(entry.key),
+        //onTap: () => _carouselController.animateToPage(entry.key),
         child: Container(
           width: 12.0,
           height: 2.0,
@@ -584,9 +584,9 @@ const SizedBox(height: 5),
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     color: Color.fromARGB(255, 43, 43, 43),
-                    fontSize: 12,
-                    fontFamily: "Poppins",
-                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    fontFamily: "Poppins-Bold",
+                    fontWeight: FontWeight.normal,
                   ),
                 ),
               ),
@@ -596,7 +596,7 @@ const SizedBox(height: 5),
                 child: Container(
                   constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height+40 - MediaQuery.of(context).size.height / 1.7,),
                   child: ListView.builder(
-                    controller: _scrollController3,
+                    //controller: _scrollController3,
                     shrinkWrap: true,
                     itemCount: _filteredRestaurantesData.length,
                     itemBuilder: (context, index) {
