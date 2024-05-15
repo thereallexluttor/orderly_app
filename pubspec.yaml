@@ -61,6 +61,7 @@ dependencies:
   video_player: ^2.8.6
   flutter_carousel_media_slider: ^0.0.2
   chewie: ^1.8.1
+  flutter_expanded_tile: ^0.3.7
 
 dev_dependencies:
   flutter_test:
