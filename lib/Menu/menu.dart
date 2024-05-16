@@ -418,8 +418,16 @@ Stack(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          Positioned(
+            left: MediaQuery.of(context).size.width * 0.0, // Ajusta la posición horizontal de las fotos de los usuarios
+            top: 40, // Ajusta la posición vertical de las fotos de los usuarios
+            child: SizedBox(
+              height: 30,
+              child: _showOnlineUsers(), // Fotos de los usuarios
+            ),
+          ),
 
-                          SizedBox(width: 150),
+                          SizedBox(width: MediaQuery.of(context).size.width * 0.2),
 
                           Container(
       
@@ -555,133 +563,105 @@ Stack(
                                                       itemBuilder: (context, index) {
                                                         return _buildProductoItem(entry.value[index]);
                                                       },
-                                                    )
+                                                    ),
+                                                     SizedBox( height: 80,)
 
 
                                                   ],
+                                                  
                                               ),
+
+                                              
                                           );
                                       }).toList(),
+                                      
                                   ),
                               ),
+                             
                       ],
                   ),
                   
  
- floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
+floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 floatingActionButton: StreamBuilder<int>(
   stream: countTotalOrderedProductsStream(),
   builder: (context, snapshot) {
-    if (snapshot.hasData && snapshot.data! > 0) { // Verifica si hay más de 0 productos
-      return Container(
-        margin: EdgeInsets.only(top: 180, left: 0),
-        child: Padding(
-          padding: EdgeInsets.only(bottom:20),
-          child: InkWell(
-            onTap: _showCart,
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.9,
-                minHeight: 50,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                color: Colors.purple, // Cambia el color a naranja
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.purple.withOpacity(0.3), // Ajusta el color de la sombra
-                    spreadRadius: 5,
-                    blurRadius: 8,
-                    offset: const Offset(0.3, 0.9),
+    if (snapshot.hasData && snapshot.data! > 0) {
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          
+          Container(
+            margin: EdgeInsets.only(top: 190, left: 0),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 10),
+              child: InkWell(
+                onTap: _showCart,
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxHeight: 49,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children:  [
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    color: Colors.purple, // Cambia el color a púrpura
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.purple.withOpacity(0.3), // Ajusta el color de la sombra
+                        spreadRadius: 5,
+                        blurRadius: 8,
+                        offset: const Offset(0.3, 0.9),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Icon(Icons.shopping_cart, color: Colors.white, size: 15), // Icono del carrito
-                      SizedBox(width: 5),
-                      Text(
-                        "Ver tu orden",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "Poppins",
-                          fontSize: 13,
+                      
+                        const
+                          
+                          Text(
+                            "Ver tu orden",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "Poppins",
+                              fontSize: 13,
+                            ),
+                          ),
+                          
+                        
+                      
+                      CircleAvatar(
+                        radius: 10,
+                        backgroundColor: Colors.white,
+                        child: Text(
+                          '${snapshot.data!.toString()}',
+                          style: TextStyle(
+                            color: Colors.purple, // Ajusta el color del texto del contador
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      SizedBox(width: 10,),
-                       CircleAvatar(
-                    radius: 10,
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      '${snapshot.data!.toString()}',
-                      style: TextStyle(
-                        color: Colors.purple, // Ajusta el color del texto del contador
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-
-                      
                     ],
-                    
                   ),
-                  StreamBuilder<int>(
-  stream: countTotalOrderedProductsStream(),
-  builder: (context, snapshot) {
-    if (snapshot.hasData && snapshot.data! > 0) {
-      return Container(
-        padding: EdgeInsets.symmetric(vertical: 0),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(0, 255, 255, 255),
-          
-        ),
-        child: Row(
-          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Container(
-              margin: const EdgeInsets.only(left: 16),
-              padding: const EdgeInsets.all(0),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(0, 255, 255, 255).withOpacity(0),
-                shape: BoxShape.rectangle,
-              ),
-              constraints: BoxConstraints(
-                minWidth: 60,
-                maxHeight: 20,
-              ),
-              
-            ),
-            SizedBox(
-              //height: 50,
-              child: _showOnlineUsers(),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return SizedBox.shrink(); // No muestra nada si no hay productos
-    }
-  }
-),
-                  
-                 
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          
+        ],
       );
     } else {
       return SizedBox.shrink(); // No muestra nada si no hay productos
     }
-  }
+  },
 ),
+
+
 
 
   
@@ -820,6 +800,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
 
   // Inicializar el precio total con el precio base de la orden
   double precioTotal = precioOrden.toDouble();
+  double precioTotal2 = precioOrden.toDouble();
 
   // Variable específica para cada pantalla para almacenar los elementos seleccionados
   Set<String> _selectedAditionals = {};
@@ -903,7 +884,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 8), // Espacio entre la imagen y la descripción
+                              
                               // Descripción de la orden
                               Container(
                                 width: double.infinity, // Asegura que el contenedor ocupe todo el ancho disponible
@@ -949,9 +930,9 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                           child: Text(
                             '  Personaliza tu orden:',
                             style: TextStyle(
-                              fontSize: 15 ,
+                              fontSize: 17 ,
                               fontWeight: FontWeight.bold,
-                              fontFamily: "Poppins",
+                              fontFamily: "Poppins-SB",
                             ),
                           ),
                         ),
@@ -986,134 +967,153 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                 List<Widget> categoryWidgets = [];
 
                                 subcategorias.forEach((subcategoriaKey, subcategoriaValue) {
-                                  bool isExpanded = true; //_expandedSubcategories.contains(subcategoriaKey);
-                                  int maxSelect = subcategoriaValue.fold<int>(0, (max, adicional) {
-                                    return adicional['maxselect'];
-                                  });
-                                  int CatGoria = subcategoriaValue.fold<int>(0, (max, adicional) {
-                                    return adicional['pos'];
-                                  });
+  bool isExpanded = true;
+  int maxSelect = subcategoriaValue.fold<int>(0, (max, adicional) {
+    return adicional['maxselect'];
+  });
+  int CatGoria = subcategoriaValue.fold<int>(0, (max, adicional) {
+    return adicional['pos'];
+  });
 
-                                  List<Widget> additionalTiles = subcategoriaValue.map<Widget>((adicional) {
-                                    bool isSelected = _selectedAditionals.contains(adicional['nombre']);
+  List<Widget> additionalTiles = subcategoriaValue.map<Widget>((adicional) {
+    bool isSelected = _selectedAditionals.contains(adicional['nombre']);
 
-                                    return _buildAdditionalTile(adicional, (int precioAdicional, bool selected) {
-                                      setState(() {
-                                        // Verificar si se ha alcanzado el límite máximo de selecciones para esta subcategoría
-                                        totalSelected = _selectedAditionals.where((element) => subcategorias[subcategoriaKey]!.any((adicional) => adicional['nombre'] == element)).length;
-                                        integerList[CatGoria - 1] = totalSelected + 1;
-                                        if (selected && totalSelected < maxSelect) {
-                                          precioTotal += precioAdicional;
-                                          _selectedAditionals.add(adicional['nombre']);
-                                        } else if (!selected) {
-                                          precioTotal -= precioAdicional;
-                                          _selectedAditionals.remove(adicional['nombre']);
+    return _buildAdditionalTile(adicional, (int precioAdicional, bool selected) {
+      setState(() {
+        // Verificar si se ha alcanzado el límite máximo de selecciones para esta subcategoría
+        totalSelected = _selectedAditionals.where((element) => subcategorias[subcategoriaKey]!.any((adicional) => adicional['nombre'] == element)).length;
 
-                                          // Imprimir una variable booleana cuando se deselecciona un elemento
-                                          print('Elemento deseleccionado: ${adicional['nombre']}');
-                                          bool elementoDeseleccionado = true;
-                                          print(elementoDeseleccionado);
-                                        }
+        if (selected) {
+          if (totalSelected >= maxSelect) {
+            if (maxSelect == 1) {
+              // Si maxSelect es 1, deseleccionar el elemento previamente seleccionado
+              String previousSelection = _selectedSubcategoryItem[subcategoriaKey]!;
+              var previousAdicional = subcategorias[subcategoriaKey]!.firstWhere((element) => element['nombre'] == previousSelection);
+              precioTotal -= previousAdicional['precio'];
+              precioTotal2 -= previousAdicional['precio'];
+              _selectedAditionals.remove(previousSelection);
+              _selectedSubcategoryItem.remove(subcategoriaKey);
+            } else {
+              return;
+            }
+          }
+          // Seleccionar el nuevo elemento
+          _selectedSubcategoryItem[subcategoriaKey] = adicional['nombre'];
+          precioTotal2 += precioAdicional;
+          _selectedAditionals.add(adicional['nombre']);
+        } else {
+          // Deseleccionar el elemento
+          precioTotal2 -= precioAdicional;
+          _selectedAditionals.remove(adicional['nombre']);
+          if (_selectedSubcategoryItem[subcategoriaKey] == adicional['nombre']) {
+            _selectedSubcategoryItem.remove(subcategoriaKey);
+          }
+        }
 
-                                        // Actualizar el estado de las subcategorías obligatorias
-                                        if (category.key == "obligatorio") {
-                                          _expandedStates[subcategoriaKey] = selected && totalSelected + 1 == maxSelect;
+        // Actualizar el estado de las subcategorías obligatorias y opcionales
+        if (category.key == "obligatorio" || maxSelect == 1) {
+          _expandedStates[subcategoriaKey] = selected && _selectedSubcategoryItem.containsKey(subcategoriaKey);
 
-                                          agregar_orden = subcategorias.keys.every((subcatKey) {
-                                            return _expandedStates[subcatKey] ?? false;
-                                          });
-                                        }
+          agregar_orden = subcategorias.keys.every((subcatKey) {
+            return _expandedStates[subcatKey] ?? false;
+          });
+        }
 
-                                        // Si se alcanza el límite máximo, colapsar la ExpansionTile
-                                        if (integerList[CatGoria - 1] == maxSelect) {
-                                          isExpanded = false; // Establecer la variable isExpanded como false
-                                          _controllers[CatGoria - 1].collapse();
-                                        }
-                                      });
-                                    }, isSelected);
-                                  }).toList();
+        // Si se alcanza el límite máximo, colapsar la ExpansionTile
+        if (totalSelected + 1 == maxSelect && selected) {
+          _controllers[CatGoria - 1].collapse();
+        }
+      });
+    }, isSelected);
+  }).toList();
 
-                                  categoryWidgets.add(
-                                    Container(
-                                      margin: EdgeInsets.symmetric(vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          ExpandedTile(
-                                            
-                                            theme: const ExpandedTileThemeData(
-                                              headerColor: Color.fromARGB(255, 255, 255, 255),
-                                              headerRadius: 8.0,
-                                              headerPadding: EdgeInsets.only(left: 0.0, top: 0.0, bottom: 8.0, right: 0.0),
-                                              headerSplashColor: Color.fromARGB(255, 240, 240, 240),
-                                              contentBackgroundColor: Color.fromARGB(255, 255, 255, 255),
-                                              contentPadding: EdgeInsets.all(0.0),
-                                              contentRadius: 12.0,
-                                            ),
-                                            title: Center(
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    subcategoriaKey,
-                                                    textAlign: TextAlign.right,
-                                                    style: TextStyle(
-                                                      fontSize: 15,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontFamily: "Poppins",
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: (category.key == "obligatorio")
-                                                          ? (_expandedStates[subcategoriaKey] == true ? Colors.green : Colors.white)
-                                                          : (_expandedStates[subcategoriaKey] == true ? Colors.white : Colors.white),
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
-                                                    ),
-                                                    child: Text(
-                                                      (category.key == "obligatorio")
-                                                          ? (_expandedStates[subcategoriaKey] == true ? "Ok!" : "Obligatorio")
-                                                          : (_expandedStates[subcategoriaKey] == true ? "Opcional" : "Opcional"),
-                                                      style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontFamily: "Poppins-SB",
-                                                        color: (category.key == "obligatorio")
-                                                            ? (_expandedStates[subcategoriaKey] == true ? Colors.white : Colors.black)
-                                                            : (_expandedStates[subcategoriaKey] == true ? Colors.black : Colors.black),
-                                                      ),
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                            content: Container(
-                                              color: Colors.white,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: additionalTiles,
-                                              ),
-                                            ),
-                                            controller: _controllers[CatGoria - 1],
-                                          ),
-                                          SizedBox(height: 8,),
-                                          Divider(
-                                            color: Color.fromARGB(255, 202, 202, 202),
-                                            height: 1, // Define el grosor del Divider
-                                            thickness: 1.3, // Define el grosor del Divider
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                });
+  categoryWidgets.add(
+    Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ExpandedTile(
+            expansionAnimationCurve: Easing.emphasizedAccelerate,
+                          
+                        
+            expansionDuration: const Duration(milliseconds: 500),
+            theme: const ExpandedTileThemeData(
+              headerColor: Color.fromARGB(255, 255, 255, 255),
+              headerRadius: 8.0,
+              headerPadding: EdgeInsets.only(left: 0.0, top: 0.0, bottom: 8.0, right: 0.0),
+              headerSplashColor: Color.fromARGB(255, 240, 240, 240),
+              contentBackgroundColor: Color.fromARGB(255, 255, 255, 255),
+              contentPadding: EdgeInsets.all(0.0),
+              contentRadius: 12.0,
+            ),
+            title: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    subcategoriaKey,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "Poppins",
+                      color: Colors.black,
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: (category.key == "obligatorio")
+                          ? (_expandedStates[subcategoriaKey] == true ? Colors.green : Colors.white)
+                          : (_expandedStates[subcategoriaKey] == true ? Colors.white : Colors.white),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color.fromARGB(255, 235, 235, 235)),
+                    ),
+                    child: Text(
+                      (category.key == "obligatorio")
+                          ? (_expandedStates[subcategoriaKey] == true ? "Ok!" : "Obligatorio")
+                          : (_expandedStates[subcategoriaKey] == true ? "Opcional" : "Opcional"),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.normal,
+                        fontFamily: "Poppins-SB",
+                        color: (category.key == "obligatorio")
+                            ? (_expandedStates[subcategoriaKey] == true ? Colors.white : Colors.black)
+                            : (_expandedStates[subcategoriaKey] == true ? Colors.black : Colors.black),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+            content: Container(
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: additionalTiles,
+              ),
+            ),
+            controller: _controllers[CatGoria - 1],
+          ),
+          SizedBox(height: 8),
+          Divider(
+            color: Color.fromARGB(255, 202, 202, 202),
+            height: 1,
+            thickness: 1.3,
+          ),
+        ],
+      ),
+    ),
+  );
+});
+
+
+                                //AQUIIIIIIIIIIIIIII
 
                                 return Container(
                                   padding: EdgeInsets.symmetric(horizontal: 16),
@@ -1125,11 +1125,12 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                             ),
                           ),
                         ),
-                        SizedBox(height: 50),
+                        SizedBox(height: 75),
                       ],
                     ),
                   ),
                 ),
+                //SizedBox(height: 28), // Espacio entre la imagen y la descripción
                 Positioned(
                   bottom: 10,
                   left: 20,
@@ -1209,19 +1210,19 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                             Text(
                               agregar_orden
                                   ? 'Agregar a la orden'
-                                  : 'Selecciona tus productos', // Cambio del texto del botón
+                                  : 'Selecciona tus adicionales', // Cambio del texto del botón
                               style: TextStyle(
-                                fontFamily: "Poppins-Bold",
-                                fontSize: 16 ,
+                                fontFamily: "Poppins",
+                                fontSize: 14 ,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
                             Text(
-                              '\$${formatter.format(precioTotal)}',
+                              '\$${formatter.format(precioTotal2)}',
                               style: TextStyle(
                                 fontFamily: "Poppins-Bold",
-                                fontSize: 16 * MediaQuery.of(context).textScaleFactor,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -1254,13 +1255,13 @@ Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSe
   return Container(
     margin: EdgeInsets.symmetric(vertical: 8), // Agrega espacio vertical entre cada tile
     child: Material(
-      elevation: 5, // Define la elevación de la sombra
+      elevation: isSelected ? 3 : 0, // Define la elevación de la sombra según el estado de selección
       borderRadius: BorderRadius.circular(12), // Esquinas redondeadas
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: Color.fromARGB(255, 255, 255, 255)!, width: 3), // Borde gris claro alrededor del contenedor
+          border: Border.all(color: Color.fromARGB(255, 196, 196, 196)!, width: 0.2), // Borde gris claro alrededor del contenedor
           borderRadius: BorderRadius.circular(12), // Esquinas redondeadas
-          color: Color.fromARGB(255, 255, 255, 255), // Un fondo ligeramente gris, para contraste sutil
+          color: Color.fromARGB(255, 255, 255, 255), // Fondo blanco
         ),
         child: ListTile(
           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0), // Ajuste del padding interno
@@ -1287,16 +1288,16 @@ Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSe
                   ),
                 ),
               ),
-              
-              adicional['precio'] > 0 ? Text(
-                '\$${adicional['precio']}',
-                style: TextStyle(
-                  fontFamily: "Poppins",
-                  fontSize: 11,
-                  color: Colors.grey[800],
-                ),
-              ) : SizedBox.shrink(),
-              
+              adicional['precio'] > 0
+                  ? Text(
+                      '\$${adicional['precio']}',
+                      style: TextStyle(
+                        fontFamily: "Poppins",
+                        fontSize: 11,
+                        color: Colors.grey[800],
+                      ),
+                    )
+                  : SizedBox.shrink(),
               Icon(
                 isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
                 color: isSelected ? Colors.green : Colors.grey,
@@ -1312,333 +1313,406 @@ Widget _buildAdditionalTile(DocumentSnapshot adicional, Function(int, bool) onSe
 }
 
 
+
 void _showCart() {
-    List<String> urlSegments = widget.scannedResult.split("/");
+  List<String> urlSegments = widget.scannedResult.split("/");
 
-    String firestorepath1 = "/${urlSegments[1]}/${urlSegments[2]}/${urlSegments[3]}/${urlSegments[4]}/${urlSegments[5]}/${urlSegments[6]}/${urlSegments[7]}";
-    String firestorepath2 = urlSegments[8];
-    bool flag = false;
-    final aux;
-    Map<String, bool> isChecked = {}; // Estado para cada checkbox
+  String firestorepath1 = "/${urlSegments[1]}/${urlSegments[2]}/${urlSegments[3]}/${urlSegments[4]}/${urlSegments[5]}/${urlSegments[6]}/${urlSegments[7]}";
+  String firestorepath2 = urlSegments[8];
+  bool flag = false;
+  final aux;
+  Map<String, bool> isChecked = {}; // Estado para cada checkbox
 
-    String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
+  String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
 
-    NumberFormat formatter = NumberFormat("#,##0", "es_ES");
+  NumberFormat formatter = NumberFormat("#,##0", "es_ES");
 
-    showModalBottomSheet<void>(
+  showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (BuildContext context) {
-        return StatefulBuilder(
-            builder: (context, setState) {
-              
-                return Container(
-                    height: MediaQuery.of(context).size.height * 0.88, // Establece la altura a la mitad de la pantalla
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(25),
-                            topRight: Radius.circular(25),
-                        ),
-                        boxShadow: [
-                            BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: Offset(0, 3),
-                            ),
-                        ],
-                    ),
-                    
-                    child: StreamBuilder<DocumentSnapshot>(
-                        stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
-                        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Center(child: CircularProgressIndicator());
-                            } else if (snapshot.hasError) {
-                              print("aaaaaaaaaaaaaaa");
-                                return Center(child: Text('Error: ${snapshot.error}'));
-                            } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
-                                print("aaaaaaaaaaaaaaa");
-                                return Center(child: Text('No se encontraron datos'));
-                            }
-                              else {
-                           
-                              print("aaaaaaaaaaaaaaa");
-                                final orderData = snapshot.data!.data() as Map<String, dynamic>;
+      return StatefulBuilder(
+        builder: (context, setState) {
+          Map<String, List<Map<String, dynamic>>> groupedItems = {};
 
-                                Map<String, List<Map<String, dynamic>>> groupedItems = {};
-
-                                for (String key in orderData.keys) {
-                                    final itemList = orderData[key];
-                                    if (itemList is Iterable) {
-                                        for (var item in itemList) {
-                                            if (item is Map<String, dynamic>) {
-                                                String photouser = item['photouser'];
-                                                 if (!isChecked.containsKey(photouser)) {
-                                                        isChecked[photouser] = flag; // Inicializa la checkbox en falso si es la primera vez
-                                                    }
-                                                if (groupedItems.containsKey(photouser)) {
-                                                    groupedItems[photouser]?.add(item);
-                                                } else {
-                                                    groupedItems[photouser] = [item];
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                return Container(
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                            children: [
-                                Expanded(
-                                    child: ListView.builder(
-                                        itemCount: groupedItems.length,
-                                        itemBuilder: (context, index) {
-                                            final photouserKey = groupedItems.keys.elementAt(index);
-                                            final itemsForUser = groupedItems[photouserKey];
-                                            
-                                            double totalPrice = itemsForUser!.fold(0.0, (sum, item) => sum + item['price'] + (item['selectedAdditionals'] as List<dynamic>).fold(0.0, (sum, additional) => sum + additional['price']));
-                                            return Card(
-                                                elevation: 0.5,
-                                                color: Colors.white,
-                                                margin: EdgeInsets.symmetric(vertical: 8.0),
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(15.0),
-                                                    side: BorderSide(color: Color.fromARGB(255, 224, 224, 224)),
-                                                ),
-                                                child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                        Padding(
-                                                            padding: EdgeInsets.all(8.0),
-                                                            child: Row(
-                                                                children: [
-                                                                    CircleAvatar(
-                                                                          radius: 15,
-                                                                          backgroundImage: NetworkImage(photouserKey),
-                                                                          backgroundColor: Colors.transparent,
-                                                                      ),
-                                                                    SizedBox(width: 10),
-                                                                    Row(
-                                                                      children: [
-                                                                        Text(
-                                                                          'Total a pagar: \$${formatter.format(totalPrice)}',
-                                                                          style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
-                                                                        ),       
-                                                                        ],
-                                                                    ),
-                                                                    Spacer(),                                               
-                                                                    IconButton(
-                                                                        icon: Icon(Icons.close),
-                                                                        onPressed: () {
-                                                                            setState(() {
-                                                                                groupedItems.remove(photouserKey);
-                                                                                FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
-                                                                                    firebaseuid: FieldValue.arrayRemove(itemsForUser),
-                                                                                }).then((_) {
-                                                                                    print('Item eliminado correctamente de Firebase.');
-                                                                                }).catchError((error) {
-                                                                                    print('Error al eliminar item de Firebase: $error');
-                                                                                });
-                                                                            });
-                                                                        },
-                                                                    ),
-                                                                ],
-                                                            ),
-                                                        ),
-                                                        
-                                                        ...itemsForUser.map<Widget>((item) {
-                                                            return Column(
-  children: [
-    Divider(
-              color: Color.fromARGB(255, 241, 241, 241), // Ajusta el color según tu preferencia
-              thickness: 10, // Espesor del divisor
-            ),
-    Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Container(
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.97, // Establece la altura a la mitad de la pantalla
+            padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Image.network(
-                item['imageUrl'],
-                height: 40,
-                width: 40,
-                fit: BoxFit.cover,
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(25),
+                topRight: Radius.circular(25),
               ),
-            ),
-          ),
-          SizedBox(width: 10), // Espacio entre la imagen y el texto
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item['productName'],
-                  style: TextStyle(
-                    fontFamily: "Poppins",
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  formatter.format(item['price']),
-                  style: TextStyle(
-                    fontFamily: "Poppins",
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 5,
+                  blurRadius: 7,
+                  offset: Offset(0, 3),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    ),
-    Text(
-                  "Acompanamientos:",
-                  style: TextStyle(
-                    fontFamily: "Poppins",
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
+            child: Column(
+              children: [
+                // AppBar
+                AppBar(
+                  leading: IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  actions: [
+                    FutureBuilder<DocumentSnapshot>(
+                      future: FirebaseFirestore.instance.collection('users').doc(firebaseuid).get(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Icon(Icons.error);
+                        } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                          return Icon(Icons.error);
+                        } else {
+                          final userDoc = snapshot.data!.data() as Map<String, dynamic>;
+                          final profileUrl = userDoc['profileUrl'];
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CircleAvatar(
+                              backgroundImage: NetworkImage(profileUrl),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.all(30.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Center(
+                          child: Text(
+                            'Se ha generado tu orden!',
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Aquí puedes ver toda tu orden y verificar tu pedido 😋.',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-    ...item['selectedAdditionals'].map<Widget>((additional) {
-      
-      return Padding(
-        padding: EdgeInsets.only(top: 0.0, bottom: 0.0, ),  // Agrega un poco de padding inferior para espaciar los divisores
-        child: Column(
-          children: [
-            Divider(
-              color: Color.fromARGB(255, 241, 241, 241), // Ajusta el color según tu preferencia
-              thickness: 1, // Espesor del divisor
-            ),
-            Row(
-  children: [
-    SizedBox(width: 0),
-    // Contenedor para la imagen, al inicio de la fila
-    Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8.0),
-          child: Image.network(
-            additional['photo'],
-            height: 35,
-            width: 35,
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-    ),
-    SizedBox(width: 8), // Espacio horizontal entre la imagen y el texto
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '${additional['name']}',
-          style: TextStyle(
-            fontFamily: "Poppins",
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        if (additional['price'] > 0) // Verifica si el precio es mayor que 0 antes de mostrar el widget de texto
-          Text(
-            formatter.format(additional['price']),
-            style: TextStyle(
-              fontFamily: "Poppins",
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Colors.purple,
-            ),
-          ),
-      ],
-    ),
-  ],
-)
+                Expanded(
+                  child: StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
+                    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        print("Error: ${snapshot.error}");
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                        print("No se encontraron datos");
+                        return Center(child: Text('No se encontraron datos'));
+                      } else {
+                        final orderData = snapshot.data!.data() as Map<String, dynamic>;
 
-            // Añadir un divisor después de cada fila
-            
-          ],
+                        groupedItems = {};
+
+                        for (String key in orderData.keys) {
+                          final itemList = orderData[key];
+                          if (itemList is Iterable) {
+                            for (var item in itemList) {
+                              if (item is Map<String, dynamic>) {
+                                String photouser = item['photouser'];
+                                if (!isChecked.containsKey(photouser)) {
+                                  isChecked[photouser] = flag; // Inicializa la checkbox en falso si es la primera vez
+                                }
+                                if (groupedItems.containsKey(photouser)) {
+                                  groupedItems[photouser]?.add(item);
+                                } else {
+                                  groupedItems[photouser] = [item];
+                                }
+                              }
+                            }
+                          }
+                        }
+
+                        return Container(
+                          padding: EdgeInsets.all(12),
+                          child: Card(
+                            elevation: 10, // Ajusta la elevación para la sombra
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: ListView.builder(
+                                      itemCount: groupedItems.length,
+                                      itemBuilder: (context, index) {
+                                        final photouserKey = groupedItems.keys.elementAt(index);
+                                        final itemsForUser = groupedItems[photouserKey];
+
+                                        double totalPrice = itemsForUser!.fold(0.0, (sum, item) => sum + item['price'] + (item['selectedAdditionals'] as List<dynamic>).fold(0.0, (sum, additional) => sum + additional['price']));
+                                        return Card(
+                                          elevation: 0.0,
+                                          color: Colors.white,
+                                          margin: EdgeInsets.symmetric(vertical: 8.0),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(15.0),
+                                            side: BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Padding(
+                                                padding: EdgeInsets.all(8.0),
+                                                child: Row(
+                                                  children: [
+                                                    CircleAvatar(
+                                                      radius: 15,
+                                                      backgroundImage: NetworkImage(photouserKey),
+                                                      backgroundColor: Colors.transparent,
+                                                    ),
+                                                    SizedBox(width: 10),
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          'Total a pagar: \$${formatter.format(totalPrice)}',
+                                                          style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Spacer(),
+                                                    IconButton(
+                                                      icon: Icon(Icons.close),
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          groupedItems.remove(photouserKey);
+                                                          FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
+                                                            firebaseuid: FieldValue.arrayRemove(itemsForUser),
+                                                          }).then((_) {
+                                                            print('Item eliminado correctamente de Firebase.');
+                                                          }).catchError((error) {
+                                                            print('Error al eliminar item de Firebase: $error');
+                                                          });
+                                                        });
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              ...itemsForUser.map<Widget>((item) {
+                                                return Column(
+                                                  children: [
+                                                    Divider(
+                                                      color: Color.fromARGB(255, 241, 241, 241),
+                                                      thickness: 10,
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Row(
+                                                        children: [
+                                                          Container(
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(8.0),
+                                                              border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
+                                                            ),
+                                                            child: ClipRRect(
+                                                              borderRadius: BorderRadius.circular(8.0),
+                                                              child: Image.network(
+                                                                item['imageUrl'],
+                                                                height: 40,
+                                                                width: 40,
+                                                                fit: BoxFit.cover,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 10),
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                  item['productName'],
+                                                                  style: TextStyle(
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: 11,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                                Text(
+                                                                  formatter.format(item['price']),
+                                                                  style: TextStyle(
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: 11,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: Colors.purple,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "Acompanamientos:",
+                                                      style: TextStyle(
+                                                        fontFamily: "Poppins",
+                                                        fontSize: 13,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                    ...item['selectedAdditionals'].map<Widget>((additional) {
+                                                      return Padding(
+                                                        padding: EdgeInsets.only(top: 0.0, bottom: 0.0),
+                                                        child: Column(
+                                                          children: [
+                                                            Divider(
+                                                              color: Color.fromARGB(255, 241, 241, 241),
+                                                              thickness: 1,
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                SizedBox(width: 0),
+                                                                Padding(
+                                                                  padding: const EdgeInsets.all(8.0),
+                                                                  child: Container(
+                                                                    decoration: BoxDecoration(
+                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                      border: Border.all(color: Color.fromARGB(255, 243, 243, 243)),
+                                                                    ),
+                                                                    child: ClipRRect(
+                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                      child: Image.network(
+                                                                        additional['photo'],
+                                                                        height: 35,
+                                                                        width: 35,
+                                                                        fit: BoxFit.cover,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                SizedBox(width: 8),
+                                                                Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  children: [
+                                                                    Text(
+                                                                      '${additional['name']}',
+                                                                      style: TextStyle(
+                                                                        fontFamily: "Poppins",
+                                                                        fontSize: 12,
+                                                                        fontWeight: FontWeight.bold,
+                                                                      ),
+                                                                    ),
+                                                                    if (additional['price'] > 0)
+                                                                      Text(
+                                                                        formatter.format(additional['price']),
+                                                                        style: TextStyle(
+                                                                          fontFamily: "Poppins",
+                                                                          fontSize: 11,
+                                                                          fontWeight: FontWeight.bold,
+                                                                          color: Colors.purple,
+                                                                        ),
+                                                                      ),
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                                  ],
+                                                );
+                                              }).toList(),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+
+                SizedBox(height: 5,),
+                Container(
+  decoration: BoxDecoration(
+    boxShadow: [
+      BoxShadow(
+        color: Colors.purpleAccent.withOpacity(0.4),
+        spreadRadius: 0.3,
+        blurRadius: 20,
+        offset: Offset(0, 1),
+      ),
+    ],
+  ),
+  child: ElevatedButton(
+    onPressed: () {
+      final itemsForUser = groupedItems;
+      print(itemsForUser);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentManagerOrderly(itemsForUser, widget.photoUrl, firestorepath1, firestorepath2, widget.scannedResult),
         ),
       );
-    }).toList(),
-  ],
-);
-
-                                                        }).toList(),
-                                                    ],
-                                                ),
-                                            );
-                                        },
-                                    ),
-                                ),
-                                ElevatedButton(
-                        onPressed: () {
-  // Acción para "Pasar al pago"
-  final itemsForUser = groupedItems;            
-  print(itemsForUser);
-
-  // Navega a la nueva pantalla
-  Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => PaymentManagerOrderly(itemsForUser, widget.photoUrl, firestorepath1, firestorepath2, widget.scannedResult),
+    },
+    style: ElevatedButton.styleFrom(
+      foregroundColor: Colors.white, // Text color
+      backgroundColor: Colors.purple,
+      padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
+      minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
+    ),
+    child: Text(
+      'Pasar al pago',
+      style: TextStyle(
+        fontSize: 12, // Tamaño de la fuente
+        fontWeight: FontWeight.bold, // Grosor de la fuente
+        color: Colors.white, // Color del texto
+        fontFamily: 'Poppins-l', // Tipo de fuente
+      ),
+    ),
   ),
-);
+),
 
-},
-
-                        style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, // Text color
-                            backgroundColor: Colors.purple,
-                            padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
-                            minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
-                        ),
-                                                    child: Text(
-                                                    'Pasar al pago',
-                                                    style: TextStyle(
-                                                        fontSize: 12,  // Tamaño de la fuente
-                                                        fontWeight: FontWeight.bold,  // Grosor de la fuente
-                                                        color: Colors.white,  // Color del texto
-                                                        fontFamily: 'Poppins-l',  // Tipo de fuente
-                                                    ),
-                                                )
-
-                                                ),
-
-                                                
-
-
-                                                        ],
-                                                    ),
-                                                );
-
-                                                }
-                                            },
-                                        ),
-                                    );
-                                },
-                            );
-                        },
-                    );
-
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
 }
+
 
 Stream<DocumentSnapshot> managerPayStream() {
   String direction = "${widget.scannedResult}/pagos/pagar";
