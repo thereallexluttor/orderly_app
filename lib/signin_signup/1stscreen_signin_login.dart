@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:orderly_app/HomePage/HomePage.dart';
 import 'package:orderly_app/Personal_information/PersonalInformation.dart';
 import 'package:orderly_app/signin_signup/1stscreen_logandsign.dart';
@@ -74,11 +75,19 @@ class _logincontrollerState extends State<logincontroller> {
                 future: FirebaseFirestore.instance.collection('Orderly').doc('Users').collection('users').doc(user.uid).get(),
                 builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
                   if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
                   }
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return Center(
+                      child: LoadingAnimationWidget.twistingDots(
+                        leftDotColor: const Color(0xFF1A1A3F),
+                        rightDotColor: Color.fromARGB(255, 198, 55, 234),
+                        size: 50,
+                      ),
+                    );
                   }
 
                   if (snapshot.hasData && snapshot.data!.exists) {
@@ -91,7 +100,13 @@ class _logincontrollerState extends State<logincontroller> {
                       return PersonalInformation();
                     } else {
                       // Si los permisos no están concedidos, muestra una pantalla de carga o un mensaje de espera
-                      return CircularProgressIndicator(); // Puedes personalizar esto según tu diseño
+                      return Center(
+                        child: LoadingAnimationWidget.twistingDots(
+                          leftDotColor: const Color(0xFF1A1A3F),
+                          rightDotColor: Color.fromARGB(255, 198, 55, 234),
+                          size: 50,
+                        ),
+                      ); // Puedes personalizar esto según tu diseño
                     }
                   }
                 },

@@ -10,6 +10,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_expanded_tile/flutter_expanded_tile.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:orderly_app/payment/NoPaywaiting.dart';
 import 'package:orderly_app/payment/PaymentManagerOrderly.dart';
 import 'package:orderly_app/payment/paymentOrder.dart';
@@ -214,8 +215,12 @@ Widget build(BuildContext context) {
       builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
           // Check if the data has loaded
           if (!snapshot.hasData) {
-              return const Center(
-                  child: CircularProgressIndicator(),
+              return  Center(
+                  child: LoadingAnimationWidget.twistingDots(
+                          leftDotColor: const Color(0xFF1A1A3F),
+                          rightDotColor: Color.fromARGB(255, 198, 55, 234),
+                          size: 50,
+                        ),
               );
           }
 
@@ -254,7 +259,11 @@ Widget build(BuildContext context) {
                 return Text("Error: ${streamSnapshot.error}");
               }
               if (streamSnapshot.connectionState == ConnectionState.waiting) {
-                return Text("Cargando cambios en ManagerPay...");
+                return LoadingAnimationWidget.twistingDots(
+                          leftDotColor: const Color(0xFF1A1A3F),
+                          rightDotColor: Color.fromARGB(255, 198, 55, 234),
+                          size: 50,
+                        );
               }
 
               // Actualizar la UI basado en los cambios en tiempo real
@@ -786,14 +795,9 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
   int precioOrden = orden['precio'] as int;
   String urlOrden = orden['url'] as String;
   List<Map<String, bool>> categoryStates = [];
-  int number = 0;
-  List<bool> booleanList = List.generate(10, (index) => true);
-  List<int> integerList = List<int>.filled(10, 0);
-  int categoria = 0;
   Map<String, bool> _expandedStates = {};
   bool agregar_orden = false;
-  bool agregar_orden_opc = false;
-   _controllers = List.generate(10, (_) => ExpandedTileController(isExpanded: true));
+  _controllers = List.generate(10, (_) => ExpandedTileController(isExpanded: true));
 
   // Formateador para los números con separador de miles
   final formatter = NumberFormat('#,###', 'es_ES');
@@ -893,7 +897,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                 child: Text(
                                   nombreOrden,
                                   style: TextStyle(
-                                    fontSize: 21 * MediaQuery.of(context).textScaleFactor,
+                                    fontSize: 18,
                                     fontFamily: "Poppins-Bold",
                                     fontWeight: FontWeight.bold,
                                     color: Color.fromARGB(255, 0, 0, 0),
@@ -907,7 +911,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                   descripcionOrden,
                                   textAlign: TextAlign.left,
                                   style: TextStyle(
-                                    fontSize: 12 * MediaQuery.of(context).textScaleFactor,
+                                    fontSize: 15 ,
                                     fontFamily: "Poppins",
                                     fontWeight: FontWeight.bold,
                                     color: Color.fromARGB(255, 131, 131, 131),
@@ -1132,7 +1136,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                 ),
                 //SizedBox(height: 28), // Espacio entre la imagen y la descripción
                 Positioned(
-                  bottom: 10,
+                  bottom: 30,
                   left: 20,
                   right: 20,
                   child: GestureDetector(
@@ -1191,7 +1195,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                       opacity: agregar_orden ? 1.0 : 1.0, // Mantener la opacidad para mostrar el estado en color
                       child: Container(
                         width: MediaQuery.of(context).size.width * 0.9, // Ajuste del ancho del botón
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12), // Ajuste del padding del botón
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 15), // Ajuste del padding del botón
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(22),
                           color: agregar_orden ? Colors.purple : Colors.grey, // Cambio de color según el estado
@@ -1336,377 +1340,417 @@ void _showCart() {
           Map<String, List<Map<String, dynamic>>> groupedItems = {};
 
           return Container(
-            height: MediaQuery.of(context).size.height * 0.97, // Establece la altura a la mitad de la pantalla
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(25),
-                topRight: Radius.circular(25),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // AppBar
-                AppBar(
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+  height: MediaQuery.of(context).size.height * 0.97, // Establece la altura a la mitad de la pantalla
+  padding: EdgeInsets.all(20),
+  decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.only(
+      topLeft: Radius.circular(25),
+      topRight: Radius.circular(25),
+    ),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.grey.withOpacity(0.5),
+        spreadRadius: 5,
+        blurRadius: 7,
+        offset: Offset(0, 3),
+      ),
+    ],
+  ),
+  child: Column(
+    children: [
+      // AppBar
+      AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        actions: [
+          FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance.collection('users').doc(firebaseuid).get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: LoadingAnimationWidget.twistingDots(
+                    leftDotColor: const Color(0xFF1A1A3F),
+                    rightDotColor: Color.fromARGB(255, 198, 55, 234),
+                    size: 50,
                   ),
-                  actions: [
-                    FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance.collection('users').doc(firebaseuid).get(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Icon(Icons.error);
-                        } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
-                          return Icon(Icons.error);
-                        } else {
-                          final userDoc = snapshot.data!.data() as Map<String, dynamic>;
-                          final profileUrl = userDoc['profileUrl'];
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CircleAvatar(
-                              backgroundImage: NetworkImage(profileUrl),
-                            ),
-                          );
-                        }
+                );
+              } else if (snapshot.hasError) {
+                return Icon(Icons.error);
+              } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                return Icon(Icons.error);
+              } else {
+                final userDoc = snapshot.data!.data() as Map<String, dynamic>;
+                final profileUrl = userDoc['profileUrl'];
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(profileUrl),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+      Center(
+        child: Container(
+          margin: const EdgeInsets.all(30.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Center(
+                child: Text(
+                  'Se ha generado tu orden!',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Aquí puedes ver toda tu orden y verificar tu pedido 😋.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      Expanded(
+        child: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
+          builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: LoadingAnimationWidget.twistingDots(
+                  leftDotColor: const Color(0xFF1A1A3F),
+                  rightDotColor: Color.fromARGB(255, 198, 55, 234),
+                  size: 50,
+                ),
+              );
+            } else if (snapshot.hasError) {
+              print("Error: ${snapshot.error}");
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+              print("No se encontraron datos");
+              return Center(child: Text('No se encontraron datos'));
+            } else {
+              final orderData = snapshot.data!.data() as Map<String, dynamic>;
+
+              groupedItems = {};
+
+              for (String key in orderData.keys) {
+                final itemList = orderData[key];
+                if (itemList is Iterable) {
+                  for (var item in itemList) {
+                    if (item is Map<String, dynamic>) {
+                      String photouser = item['photouser'];
+                      if (!isChecked.containsKey(photouser)) {
+                        isChecked[photouser] = flag; // Inicializa la checkbox en falso si es la primera vez
+                      }
+                      if (groupedItems.containsKey(photouser)) {
+                        groupedItems[photouser]?.add(item);
+                      } else {
+                        groupedItems[photouser] = [item];
+                      }
+                    }
+                  }
+                }
+              }
+
+              // Calcular la suma total
+              double totalAmount = groupedItems.values.fold(0.0, (sum, itemsForUser) {
+                return sum + itemsForUser.fold(0.0, (sum, item) {
+                  return sum + item['price'] + (item['selectedAdditionals'] as List<dynamic>).fold(0.0, (sum, additional) => sum + additional['price']);
+                });
+              });
+
+              return Column(
+                children: [
+
+                  //aqui
+                  Expanded(
+  child: ListView.builder(
+    itemCount: groupedItems.length,
+    itemBuilder: (context, index) {
+      final photouserKey = groupedItems.keys.elementAt(index);
+      final itemsForUser = groupedItems[photouserKey];
+
+      double totalPrice = itemsForUser!.fold(0.0, (sum, item) => sum + item['price'] + (item['selectedAdditionals'] as List<dynamic>).fold(0.0, (sum, additional) => sum + additional['price']));
+
+      return Container(
+        margin: EdgeInsets.symmetric(horizontal: 20.0), // Ajusta el margen horizontal para hacer la tarjeta más angosta
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2), // Color de la sombra
+              spreadRadius: 1, // Radio de expansión
+              blurRadius: 20, // Radio de desenfoque
+              offset: Offset(0, 15), // Desplazamiento de la sombra
+            ),
+          ],
+        ),
+        child: Card(
+          elevation: 0.0,
+          shadowColor: Colors.black.withOpacity(0.888), // Ajusta el color de la sombra
+          color: Colors.white,
+          margin: EdgeInsets.symmetric(vertical: 8.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+            side: BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 15,
+                      backgroundImage: NetworkImage(photouserKey),
+                      backgroundColor: Colors.transparent,
+                    ),
+                    SizedBox(width: 10),
+                    Row(
+                      children: [
+                        Text(
+                          'Total a pagar: \$${formatter.format(totalPrice)}',
+                          style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        setState(() {
+                          groupedItems.remove(photouserKey);
+                          FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
+                            firebaseuid: FieldValue.arrayRemove(itemsForUser),
+                          }).then((_) {
+                            print('Item eliminado correctamente de Firebase.');
+                          }).catchError((error) {
+                            print('Error al eliminar item de Firebase: $error');
+                          });
+                        });
                       },
                     ),
                   ],
                 ),
-                Center(
-                  child: Container(
-                    margin: const EdgeInsets.all(30.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Center(
-                          child: Text(
-                            'Se ha generado tu orden!',
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Poppins',
+              ),
+              Divider(
+                color: Color.fromARGB(255, 241, 241, 241),
+                thickness: 5,
+              ),
+              ...itemsForUser.map<Widget>((item) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
                             ),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          'Aquí puedes ver toda tu orden y verificar tu pedido 😋.',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: StreamBuilder<DocumentSnapshot>(
-                    stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
-                    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        print("Error: ${snapshot.error}");
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
-                        print("No se encontraron datos");
-                        return Center(child: Text('No se encontraron datos'));
-                      } else {
-                        final orderData = snapshot.data!.data() as Map<String, dynamic>;
-
-                        groupedItems = {};
-
-                        for (String key in orderData.keys) {
-                          final itemList = orderData[key];
-                          if (itemList is Iterable) {
-                            for (var item in itemList) {
-                              if (item is Map<String, dynamic>) {
-                                String photouser = item['photouser'];
-                                if (!isChecked.containsKey(photouser)) {
-                                  isChecked[photouser] = flag; // Inicializa la checkbox en falso si es la primera vez
-                                }
-                                if (groupedItems.containsKey(photouser)) {
-                                  groupedItems[photouser]?.add(item);
-                                } else {
-                                  groupedItems[photouser] = [item];
-                                }
-                              }
-                            }
-                          }
-                        }
-
-                        return Container(
-                          padding: EdgeInsets.all(12),
-                          child: Card(
-                            elevation: 10, // Ajusta la elevación para la sombra
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: ListView.builder(
-                                      itemCount: groupedItems.length,
-                                      itemBuilder: (context, index) {
-                                        final photouserKey = groupedItems.keys.elementAt(index);
-                                        final itemsForUser = groupedItems[photouserKey];
-
-                                        double totalPrice = itemsForUser!.fold(0.0, (sum, item) => sum + item['price'] + (item['selectedAdditionals'] as List<dynamic>).fold(0.0, (sum, additional) => sum + additional['price']));
-                                        return Card(
-                                          elevation: 0.0,
-                                          color: Colors.white,
-                                          margin: EdgeInsets.symmetric(vertical: 8.0),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(15.0),
-                                            side: BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Padding(
-                                                padding: EdgeInsets.all(8.0),
-                                                child: Row(
-                                                  children: [
-                                                    CircleAvatar(
-                                                      radius: 15,
-                                                      backgroundImage: NetworkImage(photouserKey),
-                                                      backgroundColor: Colors.transparent,
-                                                    ),
-                                                    SizedBox(width: 10),
-                                                    Row(
-                                                      children: [
-                                                        Text(
-                                                          'Total a pagar: \$${formatter.format(totalPrice)}',
-                                                          style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    Spacer(),
-                                                    IconButton(
-                                                      icon: Icon(Icons.close),
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          groupedItems.remove(photouserKey);
-                                                          FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
-                                                            firebaseuid: FieldValue.arrayRemove(itemsForUser),
-                                                          }).then((_) {
-                                                            print('Item eliminado correctamente de Firebase.');
-                                                          }).catchError((error) {
-                                                            print('Error al eliminar item de Firebase: $error');
-                                                          });
-                                                        });
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              ...itemsForUser.map<Widget>((item) {
-                                                return Column(
-                                                  children: [
-                                                    Divider(
-                                                      color: Color.fromARGB(255, 241, 241, 241),
-                                                      thickness: 10,
-                                                    ),
-                                                    Padding(
-                                                      padding: const EdgeInsets.all(8.0),
-                                                      child: Row(
-                                                        children: [
-                                                          Container(
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(8.0),
-                                                              border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
-                                                            ),
-                                                            child: ClipRRect(
-                                                              borderRadius: BorderRadius.circular(8.0),
-                                                              child: Image.network(
-                                                                item['imageUrl'],
-                                                                height: 40,
-                                                                width: 40,
-                                                                fit: BoxFit.cover,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 10),
-                                                          Expanded(
-                                                            child: Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              children: [
-                                                                Text(
-                                                                  item['productName'],
-                                                                  style: TextStyle(
-                                                                    fontFamily: "Poppins",
-                                                                    fontSize: 11,
-                                                                    fontWeight: FontWeight.bold,
-                                                                  ),
-                                                                ),
-                                                                Text(
-                                                                  formatter.format(item['price']),
-                                                                  style: TextStyle(
-                                                                    fontFamily: "Poppins",
-                                                                    fontSize: 11,
-                                                                    fontWeight: FontWeight.bold,
-                                                                    color: Colors.purple,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "Acompanamientos:",
-                                                      style: TextStyle(
-                                                        fontFamily: "Poppins",
-                                                        fontSize: 13,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.grey,
-                                                      ),
-                                                    ),
-                                                    ...item['selectedAdditionals'].map<Widget>((additional) {
-                                                      return Padding(
-                                                        padding: EdgeInsets.only(top: 0.0, bottom: 0.0),
-                                                        child: Column(
-                                                          children: [
-                                                            Divider(
-                                                              color: Color.fromARGB(255, 241, 241, 241),
-                                                              thickness: 1,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(width: 0),
-                                                                Padding(
-                                                                  padding: const EdgeInsets.all(8.0),
-                                                                  child: Container(
-                                                                    decoration: BoxDecoration(
-                                                                      borderRadius: BorderRadius.circular(8.0),
-                                                                      border: Border.all(color: Color.fromARGB(255, 243, 243, 243)),
-                                                                    ),
-                                                                    child: ClipRRect(
-                                                                      borderRadius: BorderRadius.circular(8.0),
-                                                                      child: Image.network(
-                                                                        additional['photo'],
-                                                                        height: 35,
-                                                                        width: 35,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                SizedBox(width: 8),
-                                                                Column(
-                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                  children: [
-                                                                    Text(
-                                                                      '${additional['name']}',
-                                                                      style: TextStyle(
-                                                                        fontFamily: "Poppins",
-                                                                        fontSize: 12,
-                                                                        fontWeight: FontWeight.bold,
-                                                                      ),
-                                                                    ),
-                                                                    if (additional['price'] > 0)
-                                                                      Text(
-                                                                        formatter.format(additional['price']),
-                                                                        style: TextStyle(
-                                                                          fontFamily: "Poppins",
-                                                                          fontSize: 11,
-                                                                          fontWeight: FontWeight.bold,
-                                                                          color: Colors.purple,
-                                                                        ),
-                                                                      ),
-                                                                  ],
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      );
-                                                    }).toList(),
-                                                  ],
-                                                );
-                                              }).toList(),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.network(
+                                item['imageUrl'],
+                                height: 40,
+                                width: 40,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-
-                SizedBox(height: 5,),
-                Container(
-  decoration: BoxDecoration(
-    boxShadow: [
-      BoxShadow(
-        color: Colors.purpleAccent.withOpacity(0.4),
-        spreadRadius: 0.3,
-        blurRadius: 20,
-        offset: Offset(0, 1),
-      ),
-    ],
-  ),
-  child: ElevatedButton(
-    onPressed: () {
-      final itemsForUser = groupedItems;
-      print(itemsForUser);
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PaymentManagerOrderly(itemsForUser, widget.photoUrl, firestorepath1, firestorepath2, widget.scannedResult),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['productName'],
+                                  style: TextStyle(
+                                    fontFamily: "Poppins-SB",
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  formatter.format(item['price']),
+                                  style: TextStyle(
+                                    fontFamily: "Poppins",
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.purple,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...item['selectedAdditionals'].map<Widget>((additional) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: 0.0, bottom: 0.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      border: Border.all(color: Color.fromARGB(255, 243, 243, 243)),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: Image.network(
+                                        additional['photo'],
+                                        height: 40,
+                                        width: 40,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${additional['name']}',
+                                      style: TextStyle(
+                                        fontFamily: "Poppins",
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (additional['price'] > 0)
+                                      Text(
+                                        formatter.format(additional['price']),
+                                        style: TextStyle(
+                                          fontFamily: "Poppins",
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.purple,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            Divider(
+                              color: Color.fromARGB(255, 241, 241, 241),
+                              thickness: 1,
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                );
+              }).toList(),
+            ],
+          ),
         ),
       );
     },
-    style: ElevatedButton.styleFrom(
-      foregroundColor: Colors.white, // Text color
-      backgroundColor: Colors.purple,
-      padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
-      minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
-    ),
-    child: Text(
-      'Pasar al pago',
-      style: TextStyle(
-        fontSize: 12, // Tamaño de la fuente
-        fontWeight: FontWeight.bold, // Grosor de la fuente
-        color: Colors.white, // Color del texto
-        fontFamily: 'Poppins-l', // Tipo de fuente
+  ),
+),
+
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.purpleAccent.withOpacity(0.4),
+                          spreadRadius: 0.3,
+                          blurRadius: 20,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+  onPressed: () {
+    final itemsForUser = groupedItems;
+    print(itemsForUser);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentManagerOrderly(
+          itemsForUser,
+          widget.photoUrl,
+          firestorepath1,
+          firestorepath2,
+          widget.scannedResult,
+        ),
       ),
+    );
+  },
+  style: ElevatedButton.styleFrom(
+    foregroundColor: Colors.white, // Text color
+    backgroundColor: Colors.purple,
+    padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
+    minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
+  ),
+  child: Center(
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Pasar al pago',
+          style: TextStyle(
+            fontSize: 14, // Tamaño de la fuente
+            fontWeight: FontWeight.bold, // Grosor de la fuente
+            color: Colors.white, // Color del texto
+            fontFamily: 'Poppins', // Tipo de fuente
+          ),
+        ),
+        SizedBox(width: 30), // Añade un espacio entre los textos
+        Text(
+          '(Total: \$${formatter.format(totalAmount)})',
+          style: TextStyle(
+            fontSize: 15, // Tamaño de la fuente
+            fontWeight: FontWeight.bold, // Grosor de la fuente
+            color: Colors.white, // Color del texto
+            fontFamily: 'Poppins-Bold', // Tipo de fuente
+          ),
+        ),
+      ],
     ),
   ),
 ),
 
-              ],
-            ),
-          );
+                  ),
+                ],
+              );
+            }
+          },
+        ),
+      ),
+    ],
+  ),
+);
+
+
+
+         //AQUIIII
         },
       );
     },
@@ -1777,7 +1821,11 @@ Widget _showOnlineUsers() {
     stream: FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).snapshots(),
     builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return CircularProgressIndicator();
+        return LoadingAnimationWidget.twistingDots(
+                          leftDotColor: const Color(0xFF1A1A3F),
+                          rightDotColor: Color.fromARGB(255, 198, 55, 234),
+                          size: 50,
+                        );
       } else if (snapshot.hasError) {
         return Text('Error: ${snapshot.error}');
       } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {

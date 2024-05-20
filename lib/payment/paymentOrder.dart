@@ -27,35 +27,33 @@ class _PaymentOrderState extends State<PaymentOrder> {
         _processData(data);
       },
       onError: (error) {
-        print("Error received from stream: $error");
+        print("Error recibido del stream: $error");
       },
     );
   }
 
-void _fetchPercentageFromFirestore() async {
-  String path = "${widget.scannedResult}/pagos/pagar";
-  DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance.doc(path).get();
-  var managerPay = documentSnapshot.data() as Map<String, dynamic>? ?? {};
-  List<dynamic> payments = managerPay['ManagerPay'] ?? [];
+  void _fetchPercentageFromFirestore() async {
+    String path = "${widget.scannedResult}/pagos/pagar";
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance.doc(path).get();
+    var managerPay = documentSnapshot.data() as Map<String, dynamic>? ?? {};
+    List<dynamic> payments = managerPay['ManagerPay'] ?? [];
 
-  // Filtra los pagos donde el porcentaje no es "0%" y luego busca el primer pago válido si existe
-  var validPayments = payments.where((payment) {
-    return (payment['Percentage'] as String).replaceAll('%', '') != '0';
-  }).toList();
+    var validPayments = payments.where((payment) {
+      return (payment['Percentage'] as String).replaceAll('%', '') != '0';
+    }).toList();
 
-  if (validPayments.isNotEmpty) {
-    Map<String, dynamic> firstValidPayment = validPayments.first as Map<String, dynamic>;
-    String percentageString = firstValidPayment['Percentage'].replaceAll('%', '');
-    setState(() {
-      percentage = double.parse(percentageString) / 100; // Convirtiendo el porcentaje a un valor decimal
-    });
-  } else {
-    setState(() {
-      percentage = 0.0; // Asume 0.0 si no hay pagos válidos
-    });
+    if (validPayments.isNotEmpty) {
+      Map<String, dynamic> firstValidPayment = validPayments.first as Map<String, dynamic>;
+      String percentageString = firstValidPayment['Percentage'].replaceAll('%', '');
+      setState(() {
+        percentage = double.parse(percentageString) / 100; // Convirtiendo el porcentaje a un valor decimal
+      });
+    } else {
+      setState(() {
+        percentage = 0.0; // Asume 0.0 si no hay pagos válidos
+      });
+    }
   }
-}
-
 
   void _processData(Map<String, dynamic> data) {
     double newTotalToPay = 0.0;
@@ -80,11 +78,7 @@ void _fetchPercentageFromFirestore() async {
       onWillPop: () async => false,
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text('Página de Pago', style: TextStyle(fontFamily: "Poppins-l")),
-          backgroundColor: Colors.blue,
-          automaticallyImplyLeading: false, // Esto elimina el botón de retroceso
-        ),
+       
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -99,46 +93,69 @@ void _fetchPercentageFromFirestore() async {
                 ),
               ),
               SizedBox(height: 20),
-              ElevatedButton.icon(
-                icon: Icon(Icons.account_balance_wallet, size: 24),
-                label: Text("Nequi"),
-                onPressed: () => print("Pago por Nequi"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.blue,
-                  textStyle: TextStyle(fontFamily: "Poppins-l", fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-              ElevatedButton.icon(
-                icon: Icon(Icons.money_off, size: 24),
-                label: Text("Efectivo"),
-                onPressed: () => print("Pago en Efectivo"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.green,
-                  textStyle: TextStyle(fontFamily: "Poppins-l", fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-              ElevatedButton.icon(
-                icon: Icon(Icons.credit_card, size: 24),
-                label: Text("Datafono"),
-                onPressed: () => print("Pago por Datafono"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.purple,
-                  textStyle: TextStyle(fontFamily: "Poppins-l", fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-              ElevatedButton.icon(
-                icon: Icon(Icons.business, size: 24),
-                label: Text("Bancolombia"),
-                onPressed: () => print("Pago por Bancolombia"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.red,
-                  textStyle: TextStyle(fontFamily: "Poppins-l", fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
+              _buildPaymentButton("lib/images/icons/nequi.png", "Nequi", () => print("Pago por Nequi")),
+              _buildPaymentButton("lib/images/icons/cash.jpg", "Efectivo", () => print("Pago en Efectivo")),
+              _buildPaymentButton("lib/images/icons/datafono.png", "Datafono", () => print("Pago por Datafono")),
+              _buildPaymentButton("lib/images/icons/bancolombia.png", "Bancolombia", () => print("Pago por Bancolombia")),
             ],
           ),
         ),
       ),
     );
   }
+
+Widget _buildPaymentButton(String imagePath, String label, VoidCallback onPressed) {
+  return Container(
+    margin: EdgeInsets.symmetric(vertical: 6),
+    child: ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        padding: EdgeInsets.zero, // Remove padding to maintain fixed size
+        fixedSize: Size(280, 50), // Set fixed size
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Color.fromARGB(255, 231, 231, 231), width: 1), // Add grey border
+        ),
+        elevation: 0.3,
+        shadowColor: Color.fromARGB(255, 230, 230, 230).withOpacity(0.1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(width: 5),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Color.fromARGB(255, 241, 241, 241), width: 1),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                imagePath,
+                width: 40, // Reduce image size to fit the button
+                height: 40,
+                fit: BoxFit.fill, // Reduce image size to fit the button
+              ),
+            ),
+          ),
+          SizedBox(width: 5), // Adjust spacing to fit the button
+          Expanded(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontWeight: FontWeight.bold,
+                fontSize: 15, // Reduce font size to fit the button
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 }
