@@ -115,6 +115,7 @@ flutter:
   assets:
       - lib/images/logos/orderly_icon.png
       - lib/images/icons/Apple.png
+      - lib/images/icons/card.png
       - lib/images/icons/google.png
       - lib/images/icons/bancolombia.png
       - lib/images/icons/cash.jpg
@@ -124,7 +125,6 @@ flutter:
       - lib/images/logos/orderly_icon3.png
       - lib/images/icons/phone.png
       - lib/images/logos/mascota.jpg
-      - lib/images/animations/Animation.gif
       - lib/images/icons/magnifying-glass.png
       - lib/images/food_categories/burguer.png
       - lib/images/food_categories/hotdog.jpg
@@ -135,6 +135,14 @@ flutter:
       - lib/images/food_categories/pollo.png
       - lib/images/food_categories/sushi.jpg
       - lib/video/orderly.mp4
+      - lib/images/animations/qr-code.gif
+      - lib/images/animations/clock.gif
+      - lib/images/animations/walk.gif
+      - lib/images/animations/configuration.gif
+      - lib/images/animations/plus.gif
+      - lib/images/animations/arrow.gif
+      - lib/images/animations/x.gif
+      - lib/images/animations/platter.gif
       
 
 

@@ -181,7 +181,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
                           ),
                         ),
                         SizedBox(width: 10),
-                        Icon(Icons.access_time, color: Color.fromARGB(255, 0, 0, 0), size: 15, weight: 200,), // Icono de reloj en gris
+                       Image.asset("lib/images/animations/clock.gif", height: 20, width: 20,),
                         SizedBox(width: 1),
                         Text(
                           "${widget.tiempo_entrega} min",
@@ -193,7 +193,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
                           ),
                         ),
                         SizedBox(width: 10),
-                        Icon(Icons.run_circle_outlined, color: Color.fromARGB(255, 0, 0, 0), size: 15, weight: 200,), // Icono de reloj en gris
+                        Image.asset("lib/images/animations/walk.gif", height: 20, width: 20,),
                         SizedBox(width: 1),
                         Text(
                           '${widget.distancia.toStringAsFixed(1)} Km',
@@ -348,7 +348,7 @@ class _HomePageState extends State<HomePage> {
           elevation: 0,
           actions: [
             IconButton(
-              icon: Icon(Icons.settings, color: Colors.black),
+              icon: Image.asset("lib/images/animations/configuration.gif"),
               onPressed: () {
                 _showSettingsMenu(context);
               },
@@ -359,6 +359,7 @@ class _HomePageState extends State<HomePage> {
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 0.0),
           child: SingleChildScrollView(
+            physics: NeverScrollableScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -501,7 +502,7 @@ class _HomePageState extends State<HomePage> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
-                    constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height + 40 - MediaQuery.of(context).size.height / 1.7,),
+                    constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height + 60 - MediaQuery.of(context).size.height / 1.4,),
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: _filteredRestaurantesData.length,
@@ -569,7 +570,10 @@ class _HomePageState extends State<HomePage> {
           foregroundColor: const Color(0xFFB747EB),
           elevation: 1,
           shape: const CircleBorder(eccentricity: .5),
-          child: const Icon(Icons.qr_code),
+          child: Image.asset(
+      "lib/images/animations/qr-code.gif", width: 40, height: 40,
+      fit: BoxFit.scaleDown, // Asegura que la imagen se ajuste dentro del contenedor
+    ),
         ),
         bottomNavigationBar: BottomAppBar(
           notchMargin: 0.5,

@@ -328,13 +328,24 @@ Widget build(BuildContext context) {
 Stack(
   children: <Widget>[
     // Imagen principal dentro de un Container y ClipRRect
-    Container(
-      margin: EdgeInsets.only(bottom: 20, left: 0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        child: Image.network(restaurantData['banner'] as String),
+   Container(
+  margin: EdgeInsets.only(bottom: 20, left: 0),
+  decoration: BoxDecoration(
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.2), // Color de la sombra
+        spreadRadius: 2, // Radio de expansión
+        blurRadius: 7, // Radio de desenfoque
+        offset: Offset(0, 3), // Desplazamiento de la sombra
       ),
-    ),
+    ],
+  ),
+  child: ClipRRect(
+    borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+    child: Image.network(restaurantData['banner'] as String),
+  ),
+),
+
     // Posicionar el CircleAvatar en la esquina inferior izquierda
     Positioned(
       left: 10,
@@ -466,7 +477,7 @@ Stack(
                           
                           SizedBox(width: 10), // Espacio entre calificación y entrega
                           // Tiempo de entrega
-                          Icon(Icons.access_time, color: Color.fromARGB(255, 116, 116, 116), size: 10.8, weight:200,), // Icono de reloj en gris
+                          Image.asset("lib/images/animations/clock.gif", height: 20, width: 20,),
                           SizedBox(width: 2),
                           Text(
                             '${restaurantData['tiempo_entrega']} min',
@@ -776,8 +787,17 @@ Widget _buildProductoItem(QueryDocumentSnapshot producto) {
                 //border: Border.all(color: Color.fromARGB(255, 43, 43, 43), width: 0.7),
               ),
               child: Center(
-                child: Text('+', style: TextStyle(fontSize: 15, color: Colors.black, fontWeight: FontWeight.bold)),
-              ),
+  child: ClipRRect(
+    borderRadius: BorderRadius.circular(50), // Ajusta el radio para redondear los bordes
+    child: Image.asset(
+      "lib/images/animations/plus.gif",
+      width: 100, // Ajusta el tamaño de la imagen según sea necesario
+      height: 100, // Ajusta el tamaño de la imagen según sea necesario
+      fit: BoxFit.cover, // Ajusta la imagen para que cubra completamente el área
+    ),
+  ),
+)
+
             ),
           ),
         ],
@@ -859,12 +879,21 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                     height: MediaQuery.of(context).size.width * 0.55,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.2), // Color de la sombra
+                                          spreadRadius: 2, // Radio de expansión
+                                          blurRadius: 7, // Radio de desenfoque
+                                          offset: Offset(0, 3), // Desplazamiento de la sombra
+                                        ),
+                                      ],
                                       image: DecorationImage(
                                         image: NetworkImage(urlOrden),
                                         fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),
+
                                   // Botón de cierre en la esquina superior izquierda
                                   Positioned(
                                     top: 3,
@@ -888,6 +917,8 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                   ),
                                 ],
                               ),
+
+                              SizedBox(height: 10),
                               
                               // Descripción de la orden
                               Container(
@@ -897,7 +928,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                 child: Text(
                                   nombreOrden,
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 16,
                                     fontFamily: "Poppins-Bold",
                                     fontWeight: FontWeight.bold,
                                     color: Color.fromARGB(255, 0, 0, 0),
@@ -911,7 +942,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                   descripcionOrden,
                                   textAlign: TextAlign.left,
                                   style: TextStyle(
-                                    fontSize: 15 ,
+                                    fontSize: 13,
                                     fontFamily: "Poppins",
                                     fontWeight: FontWeight.bold,
                                     color: Color.fromARGB(255, 131, 131, 131),
@@ -919,11 +950,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                                 ),
                               ),
                               SizedBox(height: 10), // Espacio adicional
-                              Divider(
-                                color: Color.fromARGB(255, 231, 231, 231), // Define el color del divisor
-                                thickness: 8, // Define el grosor del divisor
-                                height: 20, // Espacio vertical después del texto antes del divisor
-                              ),
+                              
                             ],
                           ),
                         ),
@@ -934,13 +961,13 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                           child: Text(
                             '  Personaliza tu orden:',
                             style: TextStyle(
-                              fontSize: 17 ,
+                              fontSize: 15 ,
                               fontWeight: FontWeight.bold,
-                              fontFamily: "Poppins-SB",
+                              fontFamily: "Poppins-Bold",
                             ),
                           ),
                         ),
-                        SizedBox(height: 5),
+                        
                         SizedBox(
                           height: 290,
                           // Envuelve la Columna generada dentro de un SingleChildScrollView
@@ -1063,7 +1090,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                     subcategoriaKey,
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                       fontFamily: "Poppins",
                       color: Colors.black,
@@ -1326,7 +1353,7 @@ void _showCart() {
   bool flag = false;
   final aux;
   Map<String, bool> isChecked = {}; // Estado para cada checkbox
-
+  bool EnableButton = true;
   String firebaseuid = FirebaseAuth.instance.currentUser!.uid;
 
   NumberFormat formatter = NumberFormat("#,##0", "es_ES");
@@ -1445,13 +1472,33 @@ void _showCart() {
               print("No se encontraron datos");
               return Center(child: Text('No se encontraron datos'));
             } else {
+
+              
               final orderData = snapshot.data!.data() as Map<String, dynamic>;
+              //print(snapshot.data!.data());
+              // print(orderData);
+              // print(orderData.keys);
+              bool allValuesAreIterable(Map<String, dynamic> orderData) {
+                for (var value in orderData.values) {
+                  if (value is! Iterable) {
+                    return false;
+                  }
+                }
+                return true;
+              }
+
+              EnableButton = allValuesAreIterable(orderData);
+
+              
+
 
               groupedItems = {};
 
               for (String key in orderData.keys) {
                 final itemList = orderData[key];
+                
                 if (itemList is Iterable) {
+                  print(itemList);
                   for (var item in itemList) {
                     if (item is Map<String, dynamic>) {
                       String photouser = item['photouser'];
@@ -1535,15 +1582,26 @@ void _showCart() {
                       icon: Icon(Icons.close),
                       onPressed: () {
                         setState(() {
-                          groupedItems.remove(photouserKey);
-                          FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
-                            firebaseuid: FieldValue.arrayRemove(itemsForUser),
-                          }).then((_) {
-                            print('Item eliminado correctamente de Firebase.');
-                          }).catchError((error) {
-                            print('Error al eliminar item de Firebase: $error');
-                          });
-                        });
+  groupedItems.remove(firebaseuid);
+  
+  FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
+    firebaseuid: FieldValue.delete(), // Elimina el campo completo del documento
+  }).then((_) {
+    print('Campo eliminado correctamente de Firebase.');
+
+    // Ahora crea un nuevo campo con el firebaseuid y un valor de tipo string
+    FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
+      firebaseuid: firebaseuid, // Aquí puedes agregar el valor de tipo string que desees
+    }).then((_) {
+      print('Campo creado correctamente en Firebase.');
+    }).catchError((error) {
+      print('Error al crear campo en Firebase: $error');
+    });
+  }).catchError((error) {
+    print('Error al eliminar campo de Firebase: $error');
+  });
+});
+
                       },
                     ),
                   ],
@@ -1685,7 +1743,7 @@ void _showCart() {
                       ],
                     ),
                     child: ElevatedButton(
-  onPressed: () {
+  onPressed: EnableButton ? () {
     final itemsForUser = groupedItems;
     print(itemsForUser);
 
@@ -1701,7 +1759,7 @@ void _showCart() {
         ),
       ),
     );
-  },
+  }: null,
   style: ElevatedButton.styleFrom(
     foregroundColor: Colors.white, // Text color
     backgroundColor: Colors.purple,

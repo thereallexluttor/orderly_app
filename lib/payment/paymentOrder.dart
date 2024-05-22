@@ -78,25 +78,48 @@ class _PaymentOrderState extends State<PaymentOrder> {
       onWillPop: () async => false,
       child: Scaffold(
         backgroundColor: Colors.white,
-       
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
                 'Total a pagar: \$${formatter.format(totalToPay)}',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   fontFamily: "Poppins-l",
                   color: Colors.black,
                 ),
               ),
-              SizedBox(height: 20),
-              _buildPaymentButton("lib/images/icons/nequi.png", "Nequi", () => print("Pago por Nequi")),
-              _buildPaymentButton("lib/images/icons/cash.jpg", "Efectivo", () => print("Pago en Efectivo")),
-              _buildPaymentButton("lib/images/icons/datafono.png", "Datafono", () => print("Pago por Datafono")),
-              _buildPaymentButton("lib/images/icons/bancolombia.png", "Bancolombia", () => print("Pago por Bancolombia")),
+              const SizedBox(height: 20),
+              Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 550, // Adjust height as needed
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      image: DecorationImage(
+                        image: AssetImage('lib/images/icons/card.png'),
+                        fit: BoxFit.scaleDown,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 210,
+                    left: 0,
+                    right: 0,
+                    child: Column(
+                      children: [
+                        _buildPaymentButton("lib/images/icons/nequi.png", "Nequi", () => print("Pago por Nequi")),
+                        _buildPaymentButton("lib/images/icons/cash.jpg", "Efectivo", () => print("Pago en Efectivo")),
+                        _buildPaymentButton("lib/images/icons/datafono.png", "Datafono", () => print("Pago por Datafono")),
+                        _buildPaymentButton("lib/images/icons/bancolombia.png", "Bancolombia", () => print("Pago por Bancolombia")),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -104,54 +127,66 @@ class _PaymentOrderState extends State<PaymentOrder> {
     );
   }
 
-Widget _buildPaymentButton(String imagePath, String label, VoidCallback onPressed) {
+ Widget _buildPaymentButton(String imagePath, String label, VoidCallback onPressed) {
   return Container(
-    margin: EdgeInsets.symmetric(vertical: 6),
+    margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0), // Adjust vertical margin for better spacing
     child: ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
         padding: EdgeInsets.zero, // Remove padding to maintain fixed size
-        fixedSize: Size(280, 50), // Set fixed size
+        fixedSize: const Size(230, 20), // Set fixed size for smaller and thinner button
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Color.fromARGB(255, 231, 231, 231), width: 1), // Add grey border
+          //side: const BorderSide(color: Color.fromARGB(255, 231, 231, 231), width: 1), // Add grey border
         ),
-        elevation: 0.3,
-        shadowColor: Color.fromARGB(255, 230, 230, 230).withOpacity(0.1),
+        elevation: 0,
+        shadowColor: const Color.fromARGB(255, 230, 230, 230).withOpacity(0.1),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Color.fromARGB(255, 241, 241, 241), width: 1),
+              //border: Border.all(color: const Color.fromARGB(255, 241, 241, 241), width: 1),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.asset(
                 imagePath,
-                width: 40, // Reduce image size to fit the button
-                height: 40,
+                width: 32, // Reduce image size to fit the button
+                height: 32,
                 fit: BoxFit.fill, // Reduce image size to fit the button
               ),
             ),
           ),
-          SizedBox(width: 5), // Adjust spacing to fit the button
+          const SizedBox(width: 5), // Adjust spacing to fit the button
           Expanded(
             child: Text(
               label,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: "Poppins",
                 fontWeight: FontWeight.bold,
-                fontSize: 15, // Reduce font size to fit the button
+                fontSize: 10, // Reduce font size to fit the button
                 color: Colors.black,
               ),
             ),
           ),
+          SizedBox(width: 5),
+          Container(
+            
+            child: Checkbox(
+              value: false, // Replace with your state variable
+              onChanged: (bool? newValue) {
+                // Handle checkbox state change
+              },
+              activeColor: Colors.transparent,
+              checkColor: Colors.black,
+            ),
+          ),
+          const SizedBox(width: 5),
         ],
       ),
     ),
