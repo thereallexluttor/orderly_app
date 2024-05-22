@@ -306,7 +306,7 @@ Widget build(BuildContext context) {
                   body: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 30),
                           Column(
   crossAxisAlignment: CrossAxisAlignment.start, // Alinea los elementos a la izquierda
   children: [
@@ -364,6 +364,15 @@ Stack(
         ],
       ),
     ),
+
+    Positioned(
+            left: MediaQuery.of(context).size.width * 0.45, // Ajusta la posición horizontal de las fotos de los usuarios
+            bottom: 0, // Ajusta la posición vertical de las fotos de los usuarios
+            child: SizedBox(
+              height: 30,
+              child: _showOnlineUsers(), // Fotos de los usuarios
+            ),
+          ),
     
         Positioned(
           top: 8, // Ajusta la posición según tus necesidades
@@ -438,44 +447,38 @@ Stack(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Positioned(
-            left: MediaQuery.of(context).size.width * 0.0, // Ajusta la posición horizontal de las fotos de los usuarios
-            top: 40, // Ajusta la posición vertical de las fotos de los usuarios
-            child: SizedBox(
-              height: 30,
-              child: _showOnlineUsers(), // Fotos de los usuarios
-            ),
-          ),
+                          
 
                           SizedBox(width: MediaQuery.of(context).size.width * 0.2),
 
-                          Container(
-      
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Ajusta el padding para un mejor aspecto
-      decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(0.2), // Color dorado tenue
-        borderRadius: BorderRadius.circular(20), // Hace que el container sea ovalado
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          
-          Icon(Icons.star, color: Colors.amber, size: 10.8), // Icono de estrella en dorado
-          SizedBox(width: 0),
-          Text(
-            "${restaurantData['calificacion']}",
-            style: TextStyle(
-              fontFamily: "Poppins",
-              fontWeight: FontWeight.bold,
-              fontSize: 10.8,
-              color: Color.fromARGB(255, 116, 116, 116),
-            ),
-          ),
-        ],
-      ),
-    ),
-                          
-                          SizedBox(width: 10), // Espacio entre calificación y entrega
+                          Row(
+                            children: [
+                              Container(
+                                    
+                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Ajusta el padding para un mejor aspecto
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.withOpacity(0.2), // Color dorado tenue
+                                      borderRadius: BorderRadius.circular(20), // Hace que el container sea ovalado
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        
+                                        Icon(Icons.star, color: Colors.amber, size: 10.8), // Icono de estrella en dorado
+                                        SizedBox(width: 0),
+                                        Text(
+                                          "${restaurantData['calificacion']}",
+                                          style: TextStyle(
+                                            fontFamily: "Poppins",
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 10.8,
+                                            color: Color.fromARGB(255, 116, 116, 116),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 10), // Espacio entre calificación y entrega
                           // Tiempo de entrega
                           Image.asset("lib/images/animations/clock.gif", height: 20, width: 20,),
                           SizedBox(width: 2),
@@ -487,6 +490,10 @@ Stack(
                               fontFamily: "Poppins",
                             ),
                           ),
+                            ],
+                          ),
+                          
+                          
                          
                          
 
@@ -1780,9 +1787,9 @@ void _showCart() {
             fontFamily: 'Poppins', // Tipo de fuente
           ),
         ),
-        SizedBox(width: 30), // Añade un espacio entre los textos
+        SizedBox(width: 120), // Añade un espacio entre los textos
         Text(
-          '(Total: \$${formatter.format(totalAmount)})',
+          '\$${formatter.format(totalAmount)}',
           style: TextStyle(
             fontSize: 15, // Tamaño de la fuente
             fontWeight: FontWeight.bold, // Grosor de la fuente

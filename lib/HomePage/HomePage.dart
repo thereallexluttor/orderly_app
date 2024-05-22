@@ -84,7 +84,7 @@ class _RestauranteItemState extends State<RestauranteItem> {
     
       },
       child: Container(
-        height: widget.isSelected ? 250 : 170, // Ajusta la altura según sea necesario
+        height: widget.isSelected ? 250 : 172, // Ajusta la altura según sea necesario
         child: Card(
           color: const Color.fromRGBO(255, 255, 255, 1),
           shadowColor: Colors.black,
@@ -502,7 +502,7 @@ class _HomePageState extends State<HomePage> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
-                    constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height + 60 - MediaQuery.of(context).size.height / 1.4,),
+                    constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).size.height / 1.6,),
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: _filteredRestaurantesData.length,
