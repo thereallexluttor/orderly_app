@@ -143,7 +143,7 @@ flutter:
       - lib/images/animations/arrow.gif
       - lib/images/animations/x.gif
       - lib/images/animations/platter.gif
-      
+      - lib/images/animations/payO.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

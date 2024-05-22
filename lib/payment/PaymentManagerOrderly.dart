@@ -130,7 +130,7 @@ class _PaymentManagerOrderlyState extends State<PaymentManagerOrderly> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Container(
-                width: 320,
+                width: 410,
                 height: 250,  // Adjust height to fit the button
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
@@ -143,99 +143,104 @@ class _PaymentManagerOrderlyState extends State<PaymentManagerOrderly> {
 
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(28.0),
+                      padding: const EdgeInsets.all(10.0),
                       child: Image.asset(
-                            "lib/images/animations/platter.gif", width: 80, height: 80,
+                            "lib/images/animations/payO.png", width: 150, height: 150,
                             fit: BoxFit.scaleDown, // Asegura que la imagen se ajuste dentro del contenedor
                           ),
                     ),
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 0, left: 30),
-                        child: GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            childAspectRatio: 1 / 1.1,
-                          ),
-                          itemCount: groupedItems.keys.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            String imageUrl = groupedItems.keys.elementAt(index);
-                            List<Map<String, dynamic>>? userInfo = groupedItems[imageUrl];
-                            bool isSelected = selectedKeys.contains(imageUrl);
+  child: Padding(
+    padding: const EdgeInsets.only(top: 0, left: 10),
+    child: GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 1 / 1,
+        crossAxisSpacing: 0, // Ajusta este valor para disminuir el espacio horizontal
+        mainAxisSpacing: 0,  // Ajusta este valor para disminuir el espacio vertical
+      ),
+      itemCount: groupedItems.keys.length,
+      itemBuilder: (BuildContext context, int index) {
+        String imageUrl = groupedItems.keys.elementAt(index);
+        List<Map<String, dynamic>>? userInfo = groupedItems[imageUrl];
+        bool isSelected = selectedKeys.contains(imageUrl);
 
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  if (isSelected) {
-                                    selectedKeys.remove(imageUrl);
-                                  } else {
-                                    selectedKeys.add(imageUrl);
-                                  }
-                                });
-                              },
-                              child: GridTile(
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    AnimatedContainer(
-                                      duration: const Duration(milliseconds: 500),
-                                      curve: Curves.easeInOut,
-                                      margin: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        boxShadow: isSelected
-                                            ? [
-                                                BoxShadow(
-                                                  color: const Color.fromARGB(255, 196, 68, 255).withOpacity(0.5),
-                                                  spreadRadius: 3,
-                                                  blurRadius: 5,
-                                                  offset: const Offset(0, 3),
-                                                ),
-                                              ]
-                                            : [],
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? const Color.fromARGB(255, 165, 68, 255)
-                                              : Colors.transparent,
-                                          width: 2,
-                                        ),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(16),
-                                        child: FadeInImage.assetNetwork(
-                                          placeholder: 'assets/placeholder.png',
-                                          image: imageUrl,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    ),
-                                    if (isSelected)
-                                      Positioned(
-                                        right: 8,
-                                        top: 8,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(255, 171, 68, 255),
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          child: Text(
-                                            calculatePercentage(selectedKeys.length),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              if (isSelected) {
+                selectedKeys.remove(imageUrl);
+              } else {
+                selectedKeys.add(imageUrl);
+              }
+            });
+          },
+          child: GridTile(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  margin: const EdgeInsets.all(0),
+                  decoration: BoxDecoration(
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: const Color.fromARGB(255, 196, 68, 255).withOpacity(0.5),
+                              spreadRadius: 3,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ]
+                        : [],
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color.fromARGB(255, 165, 68, 255)
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: FadeInImage.assetNetwork(
+                      width: 60,
+                      height: 60,
+                      placeholder: 'assets/placeholder.png',
+                      image: imageUrl,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                if (isSelected)
+                  Positioned(
+                    right: 15,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 171, 68, 255),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        calculatePercentage(selectedKeys.length),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  ),
+),
+
                     
                     Padding(
                       padding: const EdgeInsets.all(50.0),
