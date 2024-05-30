@@ -348,22 +348,32 @@ Stack(
 
     // Posicionar el CircleAvatar en la esquina inferior izquierda
     Positioned(
-      left: 10,
-      bottom: 0,
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 30.0,
-            backgroundImage: NetworkImage(restaurantData['url'] as String),
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
+  left: 10,
+  bottom: 0,
+  child: Row(
+    children: [
+      Container(
+        width: 64.0,
+        height: 64.0,
+        decoration: BoxDecoration(
+          color: Colors.white, // Fondo blanco
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white, // Color del borde
+            width: 2.0, // Ancho del borde
           ),
-           SizedBox(width: 210,),
-
-                          // Fotos de usuarios en línea
-               
-        ],
+        ),
+        child: CircleAvatar(
+          radius: 30.0,
+          backgroundImage: NetworkImage(restaurantData['url'] as String),
+          backgroundColor: Colors.transparent, // Fondo transparente
+        ),
       ),
-    ),
+      SizedBox(width: 210,),
+    ],
+  ),
+),
+
 
     Positioned(
             left: MediaQuery.of(context).size.width * 0.45, // Ajusta la posición horizontal de las fotos de los usuarios
@@ -1738,70 +1748,57 @@ void _showCart() {
   ),
 ),
 
-                  Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.purpleAccent.withOpacity(0.4),
-                          spreadRadius: 0.3,
-                          blurRadius: 20,
-                          offset: Offset(0, 1),
+                  ElevatedButton(
+                    onPressed: EnableButton ? () {
+                      final itemsForUser = groupedItems;
+                      print(itemsForUser);
+                  
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PaymentManagerOrderly(
+                            itemsForUser,
+                            widget.photoUrl,
+                            firestorepath1,
+                            firestorepath2,
+                            widget.scannedResult,
+                          ),
                         ),
-                      ],
+                      );
+                    }: null,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white, // Text color
+                      backgroundColor: Colors.purple,
+                      padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
+                      //minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
                     ),
-                    child: ElevatedButton(
-  onPressed: EnableButton ? () {
-    final itemsForUser = groupedItems;
-    print(itemsForUser);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentManagerOrderly(
-          itemsForUser,
-          widget.photoUrl,
-          firestorepath1,
-          firestorepath2,
-          widget.scannedResult,
-        ),
-      ),
-    );
-  }: null,
-  style: ElevatedButton.styleFrom(
-    foregroundColor: Colors.white, // Text color
-    backgroundColor: Colors.purple,
-    padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
-    minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
-  ),
-  child: Center(
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'Pasar al pago',
-          style: TextStyle(
-            fontSize: 14, // Tamaño de la fuente
-            fontWeight: FontWeight.bold, // Grosor de la fuente
-            color: Colors.white, // Color del texto
-            fontFamily: 'Poppins', // Tipo de fuente
-          ),
-        ),
-        SizedBox(width: 120), // Añade un espacio entre los textos
-        Text(
-          '\$${formatter.format(totalAmount)}',
-          style: TextStyle(
-            fontSize: 15, // Tamaño de la fuente
-            fontWeight: FontWeight.bold, // Grosor de la fuente
-            color: Colors.white, // Color del texto
-            fontFamily: 'Poppins-Bold', // Tipo de fuente
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Pasar al pago',
+                            style: TextStyle(
+                              fontSize: 14, // Tamaño de la fuente
+                              fontWeight: FontWeight.bold, // Grosor de la fuente
+                              color: Colors.white, // Color del texto
+                              fontFamily: 'Poppins', // Tipo de fuente
+                            ),
+                          ),
+                          SizedBox(width: 120), // Añade un espacio entre los textos
+                          Text(
+                            '\$${formatter.format(totalAmount)}',
+                            style: TextStyle(
+                              fontSize: 15, // Tamaño de la fuente
+                              fontWeight: FontWeight.bold, // Grosor de la fuente
+                              color: Colors.white, // Color del texto
+                              fontFamily: 'Poppins-Bold', // Tipo de fuente
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               );

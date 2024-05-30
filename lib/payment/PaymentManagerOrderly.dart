@@ -123,154 +123,142 @@ class _PaymentManagerOrderlyState extends State<PaymentManagerOrderly> {
             ),
           ),
           Expanded(
-            child: Card(
-              elevation: 0,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: MediaQuery.of(context).size.height * 0.5,
               margin: const EdgeInsets.all(8),
-              shape: RoundedRectangleBorder(
+              decoration: BoxDecoration(
+                border: Border.all(color: Color.fromARGB(255, 184, 184, 184), width: 1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Container(
-                width: 410,
-                height: 250,  // Adjust height to fit the button
-                decoration: BoxDecoration(
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  image: const DecorationImage(
-                    image: AssetImage('lib/images/icons/card.png'),
-                    fit: BoxFit.fill,
-                  ),
                 ),
-                child: Column(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 1 / 1.1,
+                    ),
+                    itemCount: groupedItems.keys.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      String imageUrl = groupedItems.keys.elementAt(index);
+                      List<Map<String, dynamic>>? userInfo = groupedItems[imageUrl];
+                      bool isSelected = selectedKeys.contains(imageUrl);
 
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Image.asset(
-                            "lib/images/animations/payO.png", width: 150, height: 150,
-                            fit: BoxFit.scaleDown, // Asegura que la imagen se ajuste dentro del contenedor
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              selectedKeys.remove(imageUrl);
+                            } else {
+                              selectedKeys.add(imageUrl);
+                            }
+                          });
+                        },
+                        child: GridTile(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                                margin: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: const Color.fromARGB(255, 196, 68, 255).withOpacity(0.5),
+                                            spreadRadius: 3,
+                                            blurRadius: 5,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ]
+                                      : [],
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? const Color.fromARGB(255, 165, 68, 255)
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: FadeInImage.assetNetwork(
+                                    placeholder: 'assets/placeholder.png',
+                                    image: imageUrl,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              if (isSelected)
+                                Positioned(
+                                  right: 8,
+                                  top: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color.fromARGB(255, 171, 68, 255),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      calculatePercentage(selectedKeys.length),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                    ),
-                    Expanded(
-  child: Padding(
-    padding: const EdgeInsets.only(top: 0, left: 10),
-    child: GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 1 / 1,
-        crossAxisSpacing: 0, // Ajusta este valor para disminuir el espacio horizontal
-        mainAxisSpacing: 0,  // Ajusta este valor para disminuir el espacio vertical
-      ),
-      itemCount: groupedItems.keys.length,
-      itemBuilder: (BuildContext context, int index) {
-        String imageUrl = groupedItems.keys.elementAt(index);
-        List<Map<String, dynamic>>? userInfo = groupedItems[imageUrl];
-        bool isSelected = selectedKeys.contains(imageUrl);
-
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              if (isSelected) {
-                selectedKeys.remove(imageUrl);
-              } else {
-                selectedKeys.add(imageUrl);
-              }
-            });
-          },
-          child: GridTile(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
-                  margin: const EdgeInsets.all(0),
-                  decoration: BoxDecoration(
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: const Color.fromARGB(255, 196, 68, 255).withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 5,
-                              offset: const Offset(0, 3),
-                            ),
-                          ]
-                        : [],
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color.fromARGB(255, 165, 68, 255)
-                          : Colors.transparent,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: FadeInImage.assetNetwork(
-                      width: 60,
-                      height: 60,
-                      placeholder: 'assets/placeholder.png',
-                      image: imageUrl,
-                      fit: BoxFit.cover,
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                if (isSelected)
-                  Positioned(
-                    right: 15,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 171, 68, 255),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        calculatePercentage(selectedKeys.length),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
           ),
-        );
-      },
-    ),
-  ),
-),
-
-                    
-                    Padding(
-                      padding: const EdgeInsets.all(50.0),
-                      child: ElevatedButton(
-                        onPressed: selectedKeys.isNotEmpty
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  // BoxShadow(
+                  //   color: Colors.grey.withOpacity(0.5),
+                  //   spreadRadius: 5,
+                  //   blurRadius: 7,
+                  //   offset: Offset(0, 3),
+                  // ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: selectedKeys.isNotEmpty
                     ? () async {
                         List<Map<String, dynamic>> userPayments = getUserPayments(groupedItems);
                         resetAndSetFirestoreData(userPayments);
                       }
                     : null,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: const Color.fromARGB(255, 158, 49, 177),
-                          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                        ),
-                        child: const Text(
-                          'Ir a pagar! 😎',
-                          style: TextStyle(
-                            fontFamily: "Poppins-l",
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: const Color.fromARGB(255, 158, 49, 177),
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                ),
+                child: const Text(
+                  'Ir a Pagar!',
+                  style: TextStyle(
+                    fontFamily: "Poppins-l",
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
           ),
-          
         ],
       ),
     );

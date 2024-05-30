@@ -94,7 +94,7 @@ flutter_native_splash:
   ios: true
   web: false
   color: "#FFFFFF"
-  image: "lib/images/logos/O.png"
+  image: "lib/images/logos/orderly_icon3.png"
 
 
 # For information on the generic Dart part of this file, see the
@@ -144,6 +144,10 @@ flutter:
       - lib/images/animations/x.gif
       - lib/images/animations/platter.gif
       - lib/images/animations/payO.png
+      - lib/images/animations/wompi.png
+      - lib/images/animations/dinero.gif
+      - lib/images/animations/datafono.gif
+      - lib/images/animations/mesero.gif
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

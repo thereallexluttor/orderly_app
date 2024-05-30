@@ -78,119 +78,160 @@ class _PaymentOrderState extends State<PaymentOrder> {
       onWillPop: () async => false,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                'Total a pagar: \$${formatter.format(totalToPay)}',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: "Poppins-l",
-                  color: Colors.black,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                const SizedBox(height: 40), // Espacio superior
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () {
+                        // Maneja la acción de retroceso
+                      },
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 20),
-              Stack(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    height: 550, // Adjust height as needed
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      image: DecorationImage(
-                        image: AssetImage('lib/images/icons/card.png'),
-                        fit: BoxFit.scaleDown,
+                const SizedBox(height: 50),
+                const Padding(
+                  padding: EdgeInsets.all(15.0),
+                  child: Text(
+                    'Selecciona tu metodo de pago! 😎',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.normal,
+                      fontFamily: "Poppins",
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 60),
+                Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        
+                      ),
+                      child: Column(
+                        children: [
+                          _buildPaymentButton("lib/images/icons/nequi.png", "Nequi, Bancolombia, PSE...", "lib/images/animations/wompi.png", () => print("Pago por Nequi")),
+                          _buildPaymentButton("lib/images/icons/cash.jpg", "Efectivo", "lib/images/animations/dinero.gif", () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const PaymentMessageScreen()),
+                            );
+                          }),
+                          _buildPaymentButton("lib/images/icons/datafono.png", "Datafono", "lib/images/animations/datafono.gif", () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const PaymentMessageScreen()),
+                            );
+                          }),
+                        ],
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 210,
-                    left: 0,
-                    right: 0,
-                    child: Column(
-                      children: [
-                        _buildPaymentButton("lib/images/icons/nequi.png", "Nequi", () => print("Pago por Nequi")),
-                        _buildPaymentButton("lib/images/icons/cash.jpg", "Efectivo", () => print("Pago en Efectivo")),
-                        _buildPaymentButton("lib/images/icons/datafono.png", "Datafono", () => print("Pago por Datafono")),
-                        _buildPaymentButton("lib/images/icons/bancolombia.png", "Bancolombia", () => print("Pago por Bancolombia")),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 150),
+                
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
- Widget _buildPaymentButton(String imagePath, String label, VoidCallback onPressed) {
-  return Container(
-    margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0), // Adjust vertical margin for better spacing
-    child: ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        padding: EdgeInsets.zero, // Remove padding to maintain fixed size
-        fixedSize: const Size(230, 20), // Set fixed size for smaller and thinner button
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          //side: const BorderSide(color: Color.fromARGB(255, 231, 231, 231), width: 1), // Add grey border
-        ),
-        elevation: 0,
-        shadowColor: const Color.fromARGB(255, 230, 230, 230).withOpacity(0.1),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 5),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              //border: Border.all(color: const Color.fromARGB(255, 241, 241, 241), width: 1),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                imagePath,
-                width: 32, // Reduce image size to fit the button
-                height: 32,
-                fit: BoxFit.fill, // Reduce image size to fit the button
-              ),
-            ),
+  Widget _buildPaymentButton(String imagePath, String label, String? trailingImagePath, VoidCallback onPressed) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade300),
           ),
-          const SizedBox(width: 5), // Adjust spacing to fit the button
-          Expanded(
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
+          elevation: 0,
+          shadowColor: Colors.grey.shade200,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+            if (trailingImagePath != null)
+              Image.asset(
+                trailingImagePath,
+                width: 38,
+                height: 38,
+                fit: BoxFit.scaleDown,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PaymentMessageScreen extends StatelessWidget {
+  const PaymentMessageScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Tu mesero esta en camino! 😉',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.normal,
                 fontFamily: "Poppins",
-                fontWeight: FontWeight.bold,
-                fontSize: 10, // Reduce font size to fit the button
                 color: Colors.black,
               ),
             ),
-          ),
-          SizedBox(width: 5),
-          Container(
-            
-            child: Checkbox(
-              value: false, // Replace with your state variable
-              onChanged: (bool? newValue) {
-                // Handle checkbox state change
-              },
-              activeColor: Colors.transparent,
-              checkColor: Colors.black,
+            const SizedBox(height: 20),
+            Image.asset(
+              'lib/images/animations/mesero.gif',
+              width: 150,
+              height: 150,
             ),
-          ),
-          const SizedBox(width: 5),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }
