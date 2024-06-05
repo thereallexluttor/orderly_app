@@ -94,7 +94,7 @@ flutter_native_splash:
   ios: true
   web: false
   color: "#FFFFFF"
-  image: "lib/images/logos/orderly_icon3.png"
+  image: "lib/images/logos/orderly_splash.png"
 
 
 # For information on the generic Dart part of this file, see the
