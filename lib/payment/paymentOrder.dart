@@ -16,6 +16,7 @@ class _PaymentOrderState extends State<PaymentOrder> {
   double totalToPay = 0.0;
   double percentage = 0.0; // Valor porcentual que será obtenido de Firestore
   NumberFormat formatter = NumberFormat("#,##0", "es_ES");
+  Map<String, dynamic> currentData = {};
 
   @override
   void initState() {
@@ -25,6 +26,7 @@ class _PaymentOrderState extends State<PaymentOrder> {
       (data) {
         print(data);
         _processData(data);
+        currentData = data; // Guardar los datos actuales
       },
       onError: (error) {
         print("Error recibido del stream: $error");
@@ -72,8 +74,22 @@ class _PaymentOrderState extends State<PaymentOrder> {
     });
   }
 
+  void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async {
+    String path = "${widget.scannedResult}/pagos/pagar";
+    try {
+      data['selectedPaymentMethod'] = paymentMethod; // Añadir método de pago seleccionado
+      await FirebaseFirestore.instance.doc(path).update({
+        'data': data,
+      });
+      print('Data saved successfully to Firestore.');
+    } catch (e) {
+      print('Error saving data to Firestore: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -122,15 +138,19 @@ class _PaymentOrderState extends State<PaymentOrder> {
                         children: [
                           _buildPaymentButton("lib/images/icons/nequi.png", "Nequi, Bancolombia, PSE...", "lib/images/animations/wompi.png", () => print("Pago por Nequi")),
                           _buildPaymentButton("lib/images/icons/cash.jpg", "Efectivo", "lib/images/animations/dinero.gif", () {
-                            Navigator.push(
+                            _saveDataToFirestore(currentData, 'Efectivo');
+                            Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(builder: (context) => const PaymentMessageScreen()),
+                              (route) => false,
                             );
                           }),
                           _buildPaymentButton("lib/images/icons/datafono.png", "Datafono", "lib/images/animations/datafono.gif", () {
-                            Navigator.push(
+                            _saveDataToFirestore(currentData, 'Datafono');
+                            Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(builder: (context) => const PaymentMessageScreen()),
+                              (route) => false,
                             );
                           }),
                         ],
@@ -199,37 +219,40 @@ class PaymentMessageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+    return WillPopScope(
+      onWillPop: () async => false, // Deshabilitar el botón de retroceso
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              // Deshabilitar acción de retroceso
+            },
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Tu mesero esta en camino! 😉',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.normal,
-                fontFamily: "Poppins",
-                color: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Tu mesero esta en camino! 😉',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.normal,
+                  fontFamily: "Poppins",
+                  color: Colors.black,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Image.asset(
-              'lib/images/animations/mesero.gif',
-              width: 150,
-              height: 150,
-            ),
-          ],
+              const SizedBox(height: 20),
+              Image.asset(
+                'lib/images/animations/mesero.gif',
+                width: 150,
+                height: 150,
+              ),
+            ],
+          ),
         ),
       ),
     );
