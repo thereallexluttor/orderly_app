@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -51,135 +53,167 @@ class _PersonalInformationState extends State<PersonalInformation> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 10),
-                Center(
+                const SizedBox(height: 40),
+                const Center(
                   child: Image(
                     image: AssetImage("lib/images/logos/orderly_icon3.png"),
-                    height: 200,
-                    width: 200,
+                    height: 100,
+                    width: 100,
                   ),
                 ),
-                SizedBox(height: 30),
-                Text(
-                  'Informacion personal',
+                const SizedBox(height: 10),
+                const Text(
+                  'Información Personal',
                   style: TextStyle(
-                    fontSize: 24,
-                    fontFamily: "Poppins-L",
+                    fontSize: 22,
+                    fontFamily: "Poppins-Bold",
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16),
-                Text(
-                  'Selecciona tu genero:',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontFamily: "Poppins-L",
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 26),
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Color.fromARGB(255, 223, 223, 223)),
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Selecciona tu género:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: "Poppins-L",
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Row(
+                        children: [
+                          Image.asset(
+                            'lib/images/animations/man.gif',
+                            width: 20,
+                            height: 20,
+                          ),
+                          Radio<String>(
+                            activeColor: Colors.black,
+                            value: 'Hombre',
+                            groupValue: gender,
+                            onChanged: (value) {
+                              setState(() {
+                                gender = value;
+                              });
+                            },
+                          ),
+                          const Text(
+                            'Hombre',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: "Poppins-L",
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        width: 1,
+                        height: 30,
+                        color: Colors.grey,
+                      ),
+                      Row(
+                        children: [
+                          Image.asset(
+                            'lib/images/animations/woman.gif',
+                            width: 25,
+                            height: 25,
+                          ),
+                          Radio<String>(
+                            activeColor: Colors.black,
+                            value: 'Mujer',
+                            groupValue: gender,
+                            onChanged: (value) {
+                              setState(() {
+                                gender = value;
+                              });
+                            },
+                          ),
+                          const Text(
+                            'Mujer',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: "Poppins-L",
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              ),
+                const SizedBox(height: 29),
+                Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: const Color.fromARGB(255, 221, 221, 221)),
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Radio<String>(
-                      value: 'Hombre',
-                      groupValue: gender,
-                      onChanged: (value) {
-                        setState(() {
-                          gender = value;
-                        });
-                      },
-                    ),
-                    Text(
-                      'Hombre',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: "Poppins-L",
+                    if (birthdate == null)
+                      const Padding(
+                        padding: EdgeInsets.only(left: 16.0, top: 8.0, right: 16.0),
+                        child: Text(
+                          'La fecha de nacimiento debe ser seleccionada para avanzar',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: FormBuilderDateTimePicker(
+                        name: 'Fecha de nacimiento',
+                        initialValue: birthdate ?? DateTime(2001),
+                        inputType: InputType.date,
+                        decoration: InputDecoration(
+                          labelText: 'Fecha de nacimiento',
+                          border: InputBorder.none,
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            birthdate = value;
+                          });
+                        },
                       ),
                     ),
-                    Radio<String>(
-                      value: 'Mujer',
-                      groupValue: gender,
-                      onChanged: (value) {
-                        setState(() {
-                          gender = value;
-                        });
-                      },
-                    ),
-                    Text(
-                      'Mujer',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: "Poppins-L",
-                      ),
+                    Divider(
+                      color: Colors.grey[400],
+                      height: 0,
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+              ),
+                SizedBox(height: 29),
                 Container(
+                  padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (birthdate == null)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16.0, top: 8.0, right: 16.0),
-                          child: Text(
-                            'La fecha de nacimiento debe ser seleccionada para avanzar',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: FormBuilderDateTimePicker(
-                          name: 'Fecha de nacimiento',
-                          initialValue: birthdate ?? DateTime(2001),
-                          inputType: InputType.date,
-                          decoration: InputDecoration(
-                            labelText: 'Fecha de nacimiento',
-                            border: InputBorder.none,
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              birthdate = value;
-                            });
-                          },
-                        ),
-                      ),
-                      Divider(
-                        color: Colors.grey[400],
-                        height: 0,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
+                    border: Border.all(color: Color.fromARGB(255, 221, 221, 221)),
+                    borderRadius: BorderRadius.circular(15.0),
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: Colors.grey.withOpacity(0.3),
+                    //     spreadRadius: 2,
+                    //     blurRadius: 5,
+                    //     offset: const Offset(0, 3),
+                    //   ),
+                    // ],
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -191,12 +225,12 @@ class _PersonalInformationState extends State<PersonalInformation> {
                               phoneNumber = number.phoneNumber;
                             });
                           },
-                          selectorConfig: SelectorConfig(
+                          selectorConfig: const SelectorConfig(
                             selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
                           ),
-                          textStyle: TextStyle(fontSize: 16),
-                          inputDecoration: InputDecoration(
-                            labelText: 'Numero de telefono',
+                          textStyle: const TextStyle(fontSize: 16),
+                          inputDecoration: const InputDecoration(
+                            labelText: 'Número de teléfono',
                             border: InputBorder.none,
                           ),
                           initialValue: PhoneNumber(isoCode: 'CO'),
@@ -209,11 +243,19 @@ class _PersonalInformationState extends State<PersonalInformation> {
                     ),
                   ),
                 ),
-                SizedBox(height: 36),
+                SizedBox(height: 56),
                 ElevatedButton(
-                  onPressed: isInformationComplete() ? () => savePersonalInformation() : null,
-                  child: Text('Guardar informacion'),
-                ),
+  onPressed: isInformationComplete() ? () => savePersonalInformation() : null,
+  style: ElevatedButton.styleFrom(
+    foregroundColor: Colors.white, backgroundColor: Colors.purple, // Color del texto
+    textStyle: const TextStyle(
+      fontFamily: 'Poppins-Bold', // Fuente del texto
+      fontSize: 16, // Tamaño del texto
+    ),
+  ),
+  child: const Text('Guardar información'),
+)
+
               ],
             ),
           ),

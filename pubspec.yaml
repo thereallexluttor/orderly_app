@@ -149,6 +149,8 @@ flutter:
       - lib/images/animations/datafono.gif
       - lib/images/animations/mesero.gif
       - lib/images/logos/orderly_splash.png
+      - lib/images/animations/man.gif
+      - lib/images/animations/woman.gif
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
