@@ -1,12 +1,13 @@
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, camel_case_types, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:permission_handler/permission_handler.dart'; // Importa el paquete de manejo de permisos
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 
 class logandsign extends StatelessWidget {
-  const logandsign({Key? key});
+  const logandsign({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,15 +18,15 @@ class logandsign extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 100),
+              const SizedBox(height: 150),
               const Center(
                 child: Image(
-                  image: AssetImage("lib/images/logos/orderly_icon3.png"),
-                  height: 200,
-                  width: 200,
+                  image: AssetImage("lib/images/logos/orderly_splash.png"),
+                  height: 140,
+                  width: 140,
                 ),
               ),
-              const SizedBox(height: 100),
+              const SizedBox(height: 150),
               const TextChangingWidget(),
               const Padding(
                 padding: EdgeInsets.only(left: 22.0),
@@ -39,16 +40,14 @@ class logandsign extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 43),
-              const SizedBox(height: 30),
-              const SizedBox(height: 3),
+              const SizedBox(height: 90),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 25.0),
                 child: Row(
                   children: [
                     Expanded(
                       child: Divider(
-                        thickness: 0.5,
+                        thickness: 1,
                         color: Colors.grey,
                       ),
                     ),
@@ -59,12 +58,13 @@ class logandsign extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.grey,
                           fontFamily: "Poppins-L",
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     Expanded(
                       child: Divider(
-                        thickness: 0.5,
+                        thickness: 1,
                         color: Colors.grey,
                       ),
                     ),
@@ -77,46 +77,52 @@ class logandsign extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      // Solicitar permiso de ubicación
+                      // Solicitar permiso de ubicación y luego iniciar sesión
                       if (await Permission.location.isGranted) {
-                        signInWithGoogle();
+                        await signInWithGoogle();
                       } else {
                         await Permission.location.request();
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      fixedSize: const Size(260, 33),
+                      fixedSize: const Size(300, 33),
                       elevation: 0,
-                      side: const BorderSide(color: Color.fromARGB(255, 165, 165, 165)),
+                      side: const BorderSide(color: Color.fromARGB(255, 218, 218, 218)),
+                      surfaceTintColor: Colors.white,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, // Centra el texto horizontalmente
+                    child: const Stack(
+                      alignment: Alignment.center,
                       children: [
-                        // Agrega un padding a la izquierda de la imagen
-                        Padding(
-                          padding: const EdgeInsets.only(left: 5.0), // Ajusta el valor según sea necesario
-                          child: Image(
-                            image: AssetImage('lib/images/icons/google.png'),
-                            width: 17, // Ajusta el tamaño según sea necesario
-                            height: 25,
-                          ),
+                        Row(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(left: 0.0), // Ajusta el valor según sea necesario
+                              child: Image(
+                                image: AssetImage('lib/images/icons/google.png'),
+                                width: 20, // Ajusta el tamaño según sea necesario
+                                height: 25,
+                              ),
+                            ),
+                          ],
                         ),
-                        // Agrega un espacio entre la imagen y el texto
-                        const SizedBox(width: 5), // Ajusta el valor según sea necesario
-                        // El texto que deseas agregar al botón
-                        Text(
-                          'Iniciar sesión con Google',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.black,
-                            fontFamily: "Poppins-L",
+                        Padding(
+                          padding: EdgeInsets.only(left: 10.0),
+                          child: Center(
+                            child: Text(
+                              'Iniciar sesión con Google',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                                fontFamily: "Poppins-L",
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ),
@@ -124,25 +130,24 @@ class logandsign extends StatelessWidget {
     );
   }
 
-  signInWithGoogle() async {
-    GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-    GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+  /// Método para iniciar sesión con Google
+  Future<void> signInWithGoogle() async {
+    final googleUser = await GoogleSignIn().signIn();
+    final googleAuth = await googleUser?.authentication;
 
-    AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth?.accessToken, idToken: googleAuth?.idToken);
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
 
-    UserCredential userCredential =
-        await FirebaseAuth.instance.signInWithCredential(credential);
-    // ignore: avoid_print
+    final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+    // Imprimir el nombre del usuario para fines de depuración
     print(userCredential.user?.displayName);
-
-  
-   
   }
 }
 
 class TextChangingWidget extends StatefulWidget {
-  const TextChangingWidget({Key? key});
+  const TextChangingWidget({super.key});
 
   @override
   _TextChangingWidgetState createState() => _TextChangingWidgetState();
