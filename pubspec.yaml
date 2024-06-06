@@ -53,7 +53,7 @@ dependencies:
   flutter_polyline_points: ^2.0.0
   simple_barcode_scanner: ^0.1.1
   firebase_database: ^10.5.0
-  flutter_cache_manager: ^3.3.1
+  flutter_cache_manager: ^3.3.2
   provider: ^6.1.2
   intl: ^0.19.0
   uuid: ^4.4.0
@@ -151,6 +151,11 @@ flutter:
       - lib/images/logos/orderly_splash.png
       - lib/images/animations/man.gif
       - lib/images/animations/woman.gif
+      - lib/images/animations/black-friday.gif
+      - lib/images/animations/helpdesk.gif
+      - lib/images/animations/law-document.gif
+      - lib/images/animations/log-out.gif
+      - lib/images/animations/menu.gif
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
