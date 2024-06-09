@@ -194,6 +194,12 @@ flutter:
     - family: Poppins-EB
       fonts:
         - asset: lib/fonts/TT-Norms-Pro-ExtraBold.otf
+    - family: Insanibu
+      fonts:
+        - asset: lib/fonts/Insanibu.ttf
+    - family: Insanibc
+      fonts:
+        - asset: lib/fonts/Insanibc.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
