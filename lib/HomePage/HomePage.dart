@@ -548,18 +548,35 @@ const SizedBox(height: 10.0),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: FloatingActionButton(
   onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const QR_Scanner()),
-    );
-  },
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      transitionDuration: Duration(milliseconds: 500), // Duración de la transición
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0); // Posición inicial de la página
+        const end = Offset.zero; // Posición final de la página
+        const curve = Curves.ease; // Curva de interpolación
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve)); // Tween para animación de deslizamiento
+        var offsetAnimation = animation.drive(tween); // Animación de deslizamiento
+        return SlideTransition(
+          position: offsetAnimation,
+          child: child,
+        );
+      },
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return QR_Scanner();
+      },
+    ),
+  );
+},
+
   backgroundColor: const Color.fromARGB(250, 255, 255, 255),
   foregroundColor: const Color(0xFFB747EB),
-  elevation: 1,
+  elevation: 10,
   shape: const CircleBorder(
     side: BorderSide(
       color: Color(0xFFB747EB), // Color morado para el contorno
-      width: 2.0, // Ancho del contorno
+      width: 3.0, // Ancho del contorno
     ),
   ),
   child: Image.asset(
