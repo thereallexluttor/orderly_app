@@ -1107,7 +1107,7 @@ Widget _buildOrderHeader(String nombreOrden, String descripcionOrden, String url
         topLeft: Radius.circular(20),
         topRight: Radius.circular(20),
       ),
-      color: Colors.purple,
+      color: Colors.grey[900], 
     ),
     child: Row(
       children: [
