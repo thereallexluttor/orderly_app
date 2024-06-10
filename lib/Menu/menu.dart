@@ -610,14 +610,7 @@ floatingActionButton: StreamBuilder<int>(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     color: Colors.purple, // Cambia el color a púrpura
-                    // boxShadow: [
-                    //   BoxShadow(
-                    //     color: Colors.purple.withOpacity(0.3), // Ajusta el color de la sombra
-                    //     spreadRadius: 5,
-                    //     blurRadius: 8,
-                    //     offset: const Offset(0.3, 0.9),
-                    //   ),
-                    // ],
+
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1047,7 +1040,7 @@ void _showAditionalsScreen(String producto, QueryDocumentSnapshot orden) {
                               'productName': nombreOrden,
                               'description': descripcionOrden,
                               'imageUrl': urlOrden,
-                              'price': precioTotal2,
+                              'price': precioOrden,
                               'selectedAdditionals': _selectedAditionals.map((ad) {
                                 return {
                                   'name': ad,
@@ -1282,35 +1275,7 @@ void _showCart() {
             Navigator.of(context).pop();
           },
         ),
-        actions: [
-          FutureBuilder<DocumentSnapshot>(
-            future: FirebaseFirestore.instance.collection('users').doc(firebaseuid).get(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: LoadingAnimationWidget.twistingDots(
-                    leftDotColor: const Color(0xFF1A1A3F),
-                    rightDotColor: Color.fromARGB(255, 198, 55, 234),
-                    size: 50,
-                  ),
-                );
-              } else if (snapshot.hasError) {
-                return Icon(Icons.error);
-              } else if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
-                return Icon(Icons.error);
-              } else {
-                final userDoc = snapshot.data!.data() as Map<String, dynamic>;
-                final profileUrl = userDoc['profileUrl'];
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(profileUrl),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
+        
       ),
       Center(
         child: Container(
@@ -1333,7 +1298,7 @@ void _showCart() {
                 'Aquí puedes ver toda tu orden y verificar tu pedido 😋.',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: Colors.black,
                   fontFamily: 'Poppins',
                 ),
               ),
@@ -1426,251 +1391,270 @@ void _showCart() {
       return Container(
         margin: EdgeInsets.symmetric(horizontal: 20.0), // Ajusta el margen horizontal para hacer la tarjeta más angosta
         decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2), // Color de la sombra
-              spreadRadius: 1, // Radio de expansión
-              blurRadius: 20, // Radio de desenfoque
-              offset: Offset(0, 15), // Desplazamiento de la sombra
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: Color.fromARGB(255, 142, 21, 158).withOpacity(0.2), // Color de la sombra
+          //     spreadRadius: 1, // Radio de expansión
+          //     blurRadius: 20, // Radio de desenfoque
+          //     offset: Offset(0, 15), // Desplazamiento de la sombra
+          //   ),
+          // ],
+        ),
+child: Card(
+  elevation: 3.0,  // Añade una ligera sombra para dar profundidad
+  //shadowColor: Color.fromARGB(255, 157, 30, 173).withOpacity(0.2),  // Sombra sutil
+  color: Colors.grey[900],  // Fondo oscuro para resaltar los elementos
+  margin: EdgeInsets.symmetric(vertical: 8.0),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12.0),
+    side: BorderSide(color: Colors.transparent),
+  ),
+  child: Padding(
+    padding: EdgeInsets.all(16.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 15,
+              backgroundImage: NetworkImage(photouserKey),
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    'Total a pagar:',
+                    style: TextStyle(
+                      fontFamily: "Insanibc",
+                      fontSize: 14,  // Aumenta un poco el tamaño del texto
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,  // Texto en blanco para mejor contraste
+                    ),
+                  ),
+                  Text(
+                    '\$${formatter.format(totalPrice)}',
+                    style: TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: 14,  // Aumenta un poco el tamaño del texto
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,  // Texto en blanco para mejor contraste
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.close, color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  groupedItems.remove(firebaseuid);
+
+                  FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
+                    firebaseuid: FieldValue.delete(), // Elimina el campo completo del documento
+                  }).then((_) {
+                    print('Campo eliminado correctamente de Firebase.');
+
+                    // Ahora crea un nuevo campo con el firebaseuid y un valor de tipo string
+                    FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
+                      firebaseuid: firebaseuid, // Aquí puedes agregar el valor de tipo string que desees
+                    }).then((_) {
+                      print('Campo creado correctamente en Firebase.');
+                    }).catchError((error) {
+                      print('Error al crear campo en Firebase: $error');
+                    });
+                  }).catchError((error) {
+                    print('Error al eliminar campo de Firebase: $error');
+                  });
+                });
+              },
             ),
           ],
         ),
-        child: Card(
-          elevation: 0.0,
-          shadowColor: Colors.black.withOpacity(0.888), // Ajusta el color de la sombra
-          color: Colors.white,
-          margin: EdgeInsets.symmetric(vertical: 8.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
-            side: BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        Divider(
+          color: Colors.grey[700],  // Color de la línea divisoria más oscuro
+          thickness: 1,
+        ),
+        SizedBox(height: 8),
+        ...itemsForUser.map<Widget>((item) {
+          return Column(
             children: [
               Padding(
-                padding: EdgeInsets.all(8.0),
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 15,
-                      backgroundImage: NetworkImage(photouserKey),
-                      backgroundColor: Colors.transparent,
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(color: Colors.grey[700]!),  // Borde gris oscuro
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.network(
+                          item['imageUrl'],
+                          height: 50,  // Aumenta el tamaño de la imagen
+                          width: 50,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                     SizedBox(width: 10),
-                    Row(
-                      children: [
-                        Text(
-                          'Total a pagar: \$${formatter.format(totalPrice)}',
-                          style: TextStyle(fontFamily: "Poppins-l", fontSize: 12, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    Spacer(),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        setState(() {
-  groupedItems.remove(firebaseuid);
-  
-  FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
-    firebaseuid: FieldValue.delete(), // Elimina el campo completo del documento
-  }).then((_) {
-    print('Campo eliminado correctamente de Firebase.');
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item['productName'],
+                            style: TextStyle(
+                              fontFamily: "Insanibc",
+                              fontSize: 16,  // Aumenta el tamaño del texto
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,  // Texto en blanco para mejor contraste
+                            ),
+                          ),
+                          Text(
+  '\$${formatter.format(item['price'])}',
+  style: TextStyle(
+    fontFamily: "Poppins",
+    fontSize: 13,  // Aumenta el tamaño del texto
+    fontWeight: FontWeight.bold,
+    color: Colors.purple,  // Precio en naranja para destacar
+  ),
+),
 
-    // Ahora crea un nuevo campo con el firebaseuid y un valor de tipo string
-    FirebaseFirestore.instance.collection(firestorepath1).doc(firestorepath2).update({
-      firebaseuid: firebaseuid, // Aquí puedes agregar el valor de tipo string que desees
-    }).then((_) {
-      print('Campo creado correctamente en Firebase.');
-    }).catchError((error) {
-      print('Error al crear campo en Firebase: $error');
-    });
-  }).catchError((error) {
-    print('Error al eliminar campo de Firebase: $error');
-  });
-});
-
-                      },
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              Divider(
-                color: Color.fromARGB(255, 241, 241, 241),
-                thickness: 5,
-              ),
-              ...itemsForUser.map<Widget>((item) {
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.0),
-                              border: Border.all(color: Color.fromARGB(255, 241, 241, 241)),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: Image.network(
-                                item['imageUrl'],
-                                height: 40,
-                                width: 40,
-                                fit: BoxFit.cover,
+              ...item['selectedAdditionals'].map<Widget>((additional) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(color: Colors.grey[700]!),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.network(
+                            additional['photo'],
+                            height: 40,
+                            width: 40,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${additional['name']}',
+                              style: TextStyle(
+                                fontFamily: "Insanibc",
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,  // Texto en blanco para mejor contraste
                               ),
                             ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['productName'],
-                                  style: TextStyle(
-                                    fontFamily: "Poppins-SB",
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  formatter.format(item['price']),
-                                  style: TextStyle(
-                                    fontFamily: "Poppins",
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.purple,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ...item['selectedAdditionals'].map<Widget>((additional) {
-                      return Padding(
-                        padding: EdgeInsets.only(top: 0.0, bottom: 0.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      border: Border.all(color: Color.fromARGB(255, 243, 243, 243)),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      child: Image.network(
-                                        additional['photo'],
-                                        height: 40,
-                                        width: 40,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${additional['name']}',
-                                      style: TextStyle(
-                                        fontFamily: "Poppins",
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    if (additional['price'] > 0)
-                                      Text(
-                                        formatter.format(additional['price']),
-                                        style: TextStyle(
-                                          fontFamily: "Poppins",
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.purple,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Divider(
-                              color: Color.fromARGB(255, 241, 241, 241),
-                              thickness: 1,
-                            ),
+                            if (additional['price'] > 0)
+  Text(
+    '\$${formatter.format(additional['price'])}',
+    style: TextStyle(
+      fontFamily: "Poppins",
+      fontSize: 11,
+      fontWeight: FontWeight.bold,
+      color: Colors.purple,  // Precio en naranja para destacar
+    ),
+  ),
+
                           ],
                         ),
-                      );
-                    }).toList(),
-                  ],
+                      ),
+                    ],
+                  ),
                 );
               }).toList(),
+              Divider(
+                color: Colors.grey[700],  // Color de la línea divisoria más oscuro
+                thickness: 1,
+              ),
             ],
-          ),
-        ),
+          );
+        }).toList(),
+      ],
+    ),
+  ),
+),
+
       );
     },
   ),
 ),
 
                   ElevatedButton(
-                    onPressed: EnableButton ? () {
-                      final itemsForUser = groupedItems;
-                      print(itemsForUser);
-                  
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PaymentManagerOrderly(
-                            itemsForUser,
-                            widget.photoUrl,
-                            firestorepath1,
-                            firestorepath2,
-                            widget.scannedResult,
-                          ),
-                        ),
-                      );
-                    }: null,
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white, // Text color
-                      backgroundColor: Colors.purple,
-                      padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
-                      //minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Pasar al pago',
-                            style: TextStyle(
-                              fontSize: 14, // Tamaño de la fuente
-                              fontWeight: FontWeight.bold, // Grosor de la fuente
-                              color: Colors.white, // Color del texto
-                              fontFamily: 'Poppins', // Tipo de fuente
-                            ),
-                          ),
-                          SizedBox(width: 120), // Añade un espacio entre los textos
-                          Text(
-                            '\$${formatter.format(totalAmount)}',
-                            style: TextStyle(
-                              fontSize: 15, // Tamaño de la fuente
-                              fontWeight: FontWeight.bold, // Grosor de la fuente
-                              color: Colors.white, // Color del texto
-                              fontFamily: 'Poppins-Bold', // Tipo de fuente
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+  onPressed: EnableButton ? () {
+    final itemsForUser = groupedItems;
+    print(itemsForUser);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentManagerOrderly(
+          itemsForUser,
+          widget.photoUrl,
+          firestorepath1,
+          firestorepath2,
+          widget.scannedResult,
+        ),
+      ),
+    );
+  } : null,
+  style: ElevatedButton.styleFrom(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10), // Cambia el radio para ajustar la forma del botón
+    ),
+    foregroundColor: Colors.white, // Color del texto
+    backgroundColor: Colors.purple,
+    padding: EdgeInsets.symmetric(vertical: 12), // Ajusta el padding para mayor altura si necesario
+    //minimumSize: Size(double.infinity, 30), // Hace el botón tan ancho como su contenedor y 50px de alto
+  ),
+  child: Center(
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Pasar al pago',
+          style: TextStyle(
+            fontSize: 15, // Tamaño de la fuente
+            fontWeight: FontWeight.bold, // Grosor de la fuente
+            color: Colors.white, // Color del texto
+            fontFamily: 'Poppins', // Tipo de fuente
+          ),
+        ),
+        SizedBox(width: 120), // Añade un espacio entre los textos
+        Text(
+          '\$${formatter.format(totalAmount)}',
+          style: TextStyle(
+            fontSize: 15, // Tamaño de la fuente
+            fontWeight: FontWeight.bold, // Grosor de la fuente
+            color: Colors.white, // Color del texto
+            fontFamily: 'Poppins-Bold', // Tipo de fuente
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
                 ],
               );
             }
