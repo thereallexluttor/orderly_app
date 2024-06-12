@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // Importar para formatear números
@@ -74,26 +75,43 @@ class _PaymentOrderState extends State<PaymentOrder> {
     });
   }
 
-  void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async {
-    String path = "${widget.scannedResult}/pagos/pagar";
-    try {
-      data['selectedPaymentMethod'] = paymentMethod; // Añadir método de pago seleccionado
+void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async {
+  String path = "${widget.scannedResult}/pagos/pagar";
+  try {
+    String userUid = FirebaseAuth.instance.currentUser!.uid;
+    if (userUid != null) {
+      // Si se encuentra el UID del usuario
+      data[userUid][0]['Paymentmethod'] = paymentMethod; 
+      // Añadir método de pago seleccionado al mapa de datos
       await FirebaseFirestore.instance.doc(path).update({
-        'data': data,
+        'data.$userUid': data[userUid], // Actualizar los datos del usuario en Firestore
       });
       print('Data saved successfully to Firestore.');
-    } catch (e) {
-      print('Error saving data to Firestore: $e');
+    } else {
+      print('No se encontró el UID del usuario en los datos.');
     }
+  } catch (e) {
+    print('Error saving data to Firestore: $e');
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
         backgroundColor: Colors.white,
+        appBar: AppBar(
+  leading: const BackButton(),
+  title: Image.asset(
+    'lib/images/logos/orderly_icon4.png',
+    height: 30, // Puedes ajustar la altura según sea necesario
+  ),
+  backgroundColor: Colors.white,
+  elevation: 0,
+),
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -101,65 +119,76 @@ class _PaymentOrderState extends State<PaymentOrder> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 const SizedBox(height: 40), // Espacio superior
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back),
-                      onPressed: () {
-                        // Maneja la acción de retroceso
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 50),
+                
+                const SizedBox(height: 20),
                 const Padding(
                   padding: EdgeInsets.all(15.0),
                   child: Text(
-                    'Selecciona tu metodo de pago! 😎',
+                    'Elige tu método de pago favorito! 😊',
                     textAlign: TextAlign.left,
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 28,
                       fontWeight: FontWeight.normal,
-                      fontFamily: "Poppins",
+                      fontFamily: "Insanibu",
                       color: Colors.black,
                     ),
                   ),
                 ),
-                const SizedBox(height: 60),
-                Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        
-                      ),
-                      child: Column(
-                        children: [
-                          _buildPaymentButton("lib/images/icons/nequi.png", "Nequi, Bancolombia, PSE...", "lib/images/animations/wompi.png", () => print("Pago por Nequi")),
-                          _buildPaymentButton("lib/images/icons/cash.jpg", "Efectivo", "lib/images/animations/dinero.gif", () {
-                            _saveDataToFirestore(currentData, 'Efectivo');
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PaymentMessageScreen()),
-                              (route) => false,
-                            );
-                          }),
-                          _buildPaymentButton("lib/images/icons/datafono.png", "Datafono", "lib/images/animations/datafono.gif", () {
-                            _saveDataToFirestore(currentData, 'Datafono');
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PaymentMessageScreen()),
-                              (route) => false,
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                  ],
+
+                const SizedBox(height: 80),
+                Padding(
+  padding: const EdgeInsets.all(20.0),
+  child: RichText(
+    text: TextSpan(
+      style: const TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.normal,
+        fontFamily: "Poppins",
+        color: Colors.black,
+      ),
+      children: [
+        const TextSpan(
+          text: 'Total a pagar: ',
+        ),
+        const TextSpan(
+          text: '\$',
+          style: TextStyle(
+            color: Colors.purple, // Color morado para el precio
+            fontWeight: FontWeight.bold, // Puedes ajustar el estilo según lo desees
+          ),// Símbolo de dólar
+        ),
+        TextSpan(
+          text: '${formatter.format(totalToPay)}',
+          style: TextStyle(
+            color: Colors.purple, // Color morado para el precio
+            fontWeight: FontWeight.bold, // Puedes ajustar el estilo según lo desees
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
+                const SizedBox(height: 0),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildPaymentButton("Nequi, Bancolombia, PSE", "lib/images/animations/wompi.png", () => print("Pago por Nequi")),
+                      _buildPaymentButton("Efectivo", "lib/images/animations/dinero.gif", () {
+                        _saveDataToFirestore(currentData, 'Efectivo');
+                      }),
+                      _buildPaymentButton( "Datafono", "lib/images/animations/datafono.gif", () {
+                        _saveDataToFirestore(currentData, 'Datafono');
+                      }),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 150),
-                
               ],
             ),
           ),
@@ -168,17 +197,17 @@ class _PaymentOrderState extends State<PaymentOrder> {
     );
   }
 
-  Widget _buildPaymentButton(String imagePath, String label, String? trailingImagePath, VoidCallback onPressed) {
+  Widget _buildPaymentButton(String label, String? trailingImagePath, VoidCallback onPressed) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey.shade300),
+            side: BorderSide(color: Colors.purple),
           ),
           elevation: 0,
           shadowColor: Colors.grey.shade200,
@@ -194,7 +223,7 @@ class _PaymentOrderState extends State<PaymentOrder> {
                   style: const TextStyle(
                     fontFamily: "Poppins",
                     fontWeight: FontWeight.bold,
-                    fontSize: 11,
+                    fontSize: 16,
                     color: Colors.black,
                   ),
                 ),
@@ -208,51 +237,6 @@ class _PaymentOrderState extends State<PaymentOrder> {
                 fit: BoxFit.scaleDown,
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class PaymentMessageScreen extends StatelessWidget {
-  const PaymentMessageScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // Deshabilitar el botón de retroceso
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              // Deshabilitar acción de retroceso
-            },
-          ),
-          backgroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Tu mesero esta en camino! 😉',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.normal,
-                  fontFamily: "Poppins",
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Image.asset(
-                'lib/images/animations/mesero.gif',
-                width: 150,
-                height: 150,
-              ),
-            ],
-          ),
         ),
       ),
     );

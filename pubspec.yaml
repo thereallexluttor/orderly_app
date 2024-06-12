@@ -123,6 +123,7 @@ flutter:
       - lib/images/icons/nequi.png
       - lib/images/logos/orderly_icon2.png
       - lib/images/logos/orderly_icon3.png
+      - lib/images/logos/orderly_icon4.png
       - lib/images/icons/phone.png
       - lib/images/logos/mascota.jpg
       - lib/images/icons/magnifying-glass.png
