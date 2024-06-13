@@ -75,12 +75,12 @@ class _RestauranteItemState extends State<RestauranteItem> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MenuHomePage(menuUrl: widget.menu_url),
-        ),
-      );
+      //   Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => MenuHomePage(menuUrl: widget.menu_url),
+      //   ),
+      // );
     
       },
       child: Container(
@@ -335,26 +335,13 @@ class _HomePageState extends State<HomePage> {
               child: Scaffold(
                 backgroundColor: Colors.white,
                 appBar: AppBar(
-                backgroundColor: Colors.white,
-                elevation: 0,
-                leading: Padding(
-                  padding: const EdgeInsets.only( left:5),
-                  child: Image.asset(
-                    "lib/images/logos/orderly_icon3.png",
-                    width: 80,
-                    height: 80,
-                    
-                  ),
-                ),
-                actions: [
-                  IconButton(
-                    icon: Image.asset("lib/images/animations/configuration.gif"),
-                    onPressed: () {
-                      _showSettingsMenu(context);
-                    },
-                  ),
-                ],
-                toolbarHeight: 45,
+          automaticallyImplyLeading: false,  // Oculta el botón de retroceso
+          title: Image.asset(
+            'lib/images/logos/orderly_icon3.png',
+            height: 30,
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
         ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 0.0),

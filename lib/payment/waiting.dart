@@ -7,12 +7,12 @@ class WaitingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
-      child: Scaffold(
+      child: const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
+            children: [
               CircularProgressIndicator(), // Indicador de carga
               SizedBox(height: 20),
               Text(
