@@ -234,39 +234,27 @@ class _PaymentManagerOrderlyState extends State<PaymentManagerOrderly> {
 ,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  // BoxShadow(
-                  //   color: Colors.grey.withOpacity(0.5),
-                  //   spreadRadius: 5,
-                  //   blurRadius: 7,
-                  //   offset: Offset(0, 3),
-                  // ),
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: selectedKeys.isNotEmpty
-                    ? () async {
-                        List<Map<String, dynamic>> userPayments = getUserPayments(groupedItems);
-                        resetAndSetFirestoreData(userPayments);
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: const Color.fromARGB(255, 158, 49, 177),
-                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+            child: ElevatedButton(
+              onPressed: selectedKeys.isNotEmpty
+                  ? () async {
+                      List<Map<String, dynamic>> userPayments = getUserPayments(groupedItems);
+                      resetAndSetFirestoreData(userPayments);
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color.fromARGB(255, 158, 49, 177),
+                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Text(
-                  'Ir a Pagar!',
-                  style: TextStyle(
-                    fontFamily: "Poppins",
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+              ),
+              child: const Text(
+                'Ir a Pagar!',
+                style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
             ),

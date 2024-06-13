@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart'; // Importar para formatear números
+import 'package:intl/intl.dart';
+import 'package:orderly_app/payment/waiting.dart';
 
 class PaymentOrder extends StatefulWidget {
   final Stream<Map<String, dynamic>> invoiceProductsStream;
@@ -15,7 +16,7 @@ class PaymentOrder extends StatefulWidget {
 
 class _PaymentOrderState extends State<PaymentOrder> {
   double totalToPay = 0.0;
-  double percentage = 0.0; // Valor porcentual que será obtenido de Firestore
+  double percentage = 0.0;
   NumberFormat formatter = NumberFormat("#,##0", "es_ES");
   Map<String, dynamic> currentData = {};
 
@@ -27,7 +28,7 @@ class _PaymentOrderState extends State<PaymentOrder> {
       (data) {
         print(data);
         _processData(data);
-        currentData = data; // Guardar los datos actuales
+        currentData = data;
       },
       onError: (error) {
         print("Error recibido del stream: $error");
@@ -49,11 +50,11 @@ class _PaymentOrderState extends State<PaymentOrder> {
       Map<String, dynamic> firstValidPayment = validPayments.first as Map<String, dynamic>;
       String percentageString = firstValidPayment['Percentage'].replaceAll('%', '');
       setState(() {
-        percentage = double.parse(percentageString) / 100; // Convirtiendo el porcentaje a un valor decimal
+        percentage = double.parse(percentageString) / 100;
       });
     } else {
       setState(() {
-        percentage = 0.0; // Asume 0.0 si no hay pagos válidos
+        percentage = 0.0;
       });
     }
   }
@@ -75,27 +76,38 @@ class _PaymentOrderState extends State<PaymentOrder> {
     });
   }
 
-void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async {
-  String path = "${widget.scannedResult}/pagos/pagar";
-  try {
-    String userUid = FirebaseAuth.instance.currentUser!.uid;
-    if (userUid != null) {
-      // Si se encuentra el UID del usuario
-      data[userUid][0]['Paymentmethod'] = paymentMethod; 
-      // Añadir método de pago seleccionado al mapa de datos
-      await FirebaseFirestore.instance.doc(path).update({
-        'data.$userUid': data[userUid], // Actualizar los datos del usuario en Firestore
-      });
-      print('Data saved successfully to Firestore.');
-    } else {
-      print('No se encontró el UID del usuario en los datos.');
+  void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async {
+    String path = "${widget.scannedResult}/pagos/pagar";
+    try {
+      String userUid = FirebaseAuth.instance.currentUser!.uid;
+      if (userUid != null) {
+        data[userUid][0]['Paymentmethod'] = paymentMethod;
+        await FirebaseFirestore.instance.doc(path).update({
+          'data.$userUid': data[userUid],
+        });
+        print('Data saved successfully to Firestore.');
+        _navigateToWaitingPage();
+      } else {
+        print('No se encontró el UID del usuario en los datos.');
+      }
+    } catch (e) {
+      print('Error saving data to Firestore: $e');
     }
-  } catch (e) {
-    print('Error saving data to Firestore: $e');
   }
-}
 
-
+  void _navigateToWaitingPage() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const WaitingPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,22 +116,21 @@ void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-  leading: const BackButton(),
-  title: Image.asset(
-    'lib/images/logos/orderly_icon4.png',
-    height: 30, // Puedes ajustar la altura según sea necesario
-  ),
-  backgroundColor: Colors.white,
-  elevation: 0,
-),
+          automaticallyImplyLeading: false,  // Oculta el botón de retroceso
+          title: Image.asset(
+            'lib/images/logos/orderly_icon4.png',
+            height: 30,
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                const SizedBox(height: 40), // Espacio superior
-                
+                const SizedBox(height: 40),
                 const SizedBox(height: 20),
                 const Padding(
                   padding: EdgeInsets.all(15.0),
@@ -134,41 +145,39 @@ void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 80),
                 Padding(
-  padding: const EdgeInsets.all(20.0),
-  child: RichText(
-    text: TextSpan(
-      style: const TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.normal,
-        fontFamily: "Poppins",
-        color: Colors.black,
-      ),
-      children: [
-        const TextSpan(
-          text: 'Total a pagar: ',
-        ),
-        const TextSpan(
-          text: '\$',
-          style: TextStyle(
-            color: Colors.purple, // Color morado para el precio
-            fontWeight: FontWeight.bold, // Puedes ajustar el estilo según lo desees
-          ),// Símbolo de dólar
-        ),
-        TextSpan(
-          text: '${formatter.format(totalToPay)}',
-          style: TextStyle(
-            color: Colors.purple, // Color morado para el precio
-            fontWeight: FontWeight.bold, // Puedes ajustar el estilo según lo desees
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
+                  padding: const EdgeInsets.all(20.0),
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.normal,
+                        fontFamily: "Poppins",
+                        color: Colors.black,
+                      ),
+                      children: [
+                        const TextSpan(
+                          text: 'Total a pagar: ',
+                        ),
+                        const TextSpan(
+                          text: '\$',
+                          style: TextStyle(
+                            color: Colors.purple,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '${formatter.format(totalToPay)}',
+                          style: const TextStyle(
+                            color: Colors.purple,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 0),
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -178,12 +187,17 @@ void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async
                   ),
                   child: Column(
                     children: [
-                      _buildPaymentButton("Nequi, Bancolombia, PSE", "lib/images/animations/wompi.png", () => print("Pago por Nequi")),
+                      _buildPaymentButton("Nequi, Bancolombia, PSE", "lib/images/animations/wompi.png", () {
+                        _navigateToWaitingPage();
+                        print("Pago por Nequi");
+                      }),
                       _buildPaymentButton("Efectivo", "lib/images/animations/dinero.gif", () {
                         _saveDataToFirestore(currentData, 'Efectivo');
+                        _navigateToWaitingPage();
                       }),
-                      _buildPaymentButton( "Datafono", "lib/images/animations/datafono.gif", () {
+                      _buildPaymentButton("Datafono", "lib/images/animations/datafono.gif", () {
                         _saveDataToFirestore(currentData, 'Datafono');
+                        _navigateToWaitingPage();
                       }),
                     ],
                   ),
@@ -207,7 +221,7 @@ void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.purple),
+            side: const BorderSide(color: Colors.purple),
           ),
           elevation: 0,
           shadowColor: Colors.grey.shade200,
@@ -217,7 +231,6 @@ void _saveDataToFirestore(Map<String, dynamic> data, String paymentMethod) async
           children: [
             Row(
               children: [
-                
                 Text(
                   label,
                   style: const TextStyle(

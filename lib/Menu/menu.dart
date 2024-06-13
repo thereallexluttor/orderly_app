@@ -275,11 +275,22 @@ Widget build(BuildContext context) {
               bool usernotInList = managerPay.any((item) => item['UserId'] == FirebaseAuth.instance.currentUser!.uid && item['WillPay'] == false);
 
               if (userInList) {
-                  // Usando Future.microtask para evitar excepciones de modificación de estado durante la construcción
-                  Future.microtask(() =>
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentOrder(InvoiceProductsStream(), widget.scannedResult)))
-                  );
-              } 
+              // Usando Future.microtask para evitar excepciones de modificación de estado durante la construcción
+              Future.microtask(() => 
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => PaymentOrder(InvoiceProductsStream(), widget.scannedResult),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  ),
+                ),
+              );
+            }
+
 
               if (usernotInList) {
                   // Usando Future.microtask para evitar excepciones de modificación de estado durante la construcción
@@ -363,7 +374,7 @@ Stack(
 
     
         Positioned(
-          top: 25, // Ajusta la posición según tus necesidades
+          top: 45, // Ajusta la posición según tus necesidades
           left: 15,
           child: InkWell(
             onTap: () {
@@ -403,103 +414,107 @@ Stack(
     // Mueve todo el contenido de la columna hacia arriba
        Container(
         margin: EdgeInsets.only(top: 7,left: 0),
-        color: const Color.fromARGB(0, 255, 255, 255),
+        color: Color.fromARGB(0, 211, 47, 47),
         padding: const EdgeInsets.all(0.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(width: 15,),
                 // Foto del restaurante
                 
 
                 
+                Align(
+  alignment: Alignment.center,
+  child: Container(
+    padding: EdgeInsets.all(15), // Espacio interno de la caja
+    decoration: BoxDecoration(
+      color: Colors.white, // Color de fondo de la caja
+      borderRadius: BorderRadius.circular(12), // Bordes redondeados
+      border: Border.all(color: Color.fromARGB(255, 224, 224, 224), width: 1), // Borde negro
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Nombre del restaurante
+        Row(
+          children: [
+            SizedBox(height: 14),
+            Text(
+              restaurantData['nombre_restaurante'] as String,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 19.9,
+                fontFamily: "Insanibc",
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+            Row(
+              children: [
                 Container(
-                  padding: EdgeInsets.all(9), // Espacio interno de la caja
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Ajusta el padding para un mejor aspecto
                   decoration: BoxDecoration(
-                    color: Colors.white, // Color de fondo de la caja
-                    borderRadius: BorderRadius.circular(12), // Bordes redondeados
-                    border: Border.all(color: Color.fromARGB(255, 224, 224, 224), width: 1), // Borde negro
+                    color: Colors.amber.withOpacity(0.2), // Color dorado tenue
+                    borderRadius: BorderRadius.circular(20), // Hace que el container sea ovalado
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Nombre del restaurante
-                      Row(
-                        children: [
-                          SizedBox(height: 14),
-                          Text(
-                            restaurantData['nombre_restaurante'] as String,
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 19.9,
-                              fontFamily: "Insanibc",
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                          SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-                          Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Ajusta el padding para un mejor aspecto
-                                decoration: BoxDecoration(
-                                  color: Colors.amber.withOpacity(0.2), // Color dorado tenue
-                                  borderRadius: BorderRadius.circular(20), // Hace que el container sea ovalado
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.star, color: Colors.amber, size: 10.8), // Icono de estrella en dorado
-                                    SizedBox(width: 0),
-                                    Text(
-                                      "${restaurantData['calificacion']}",
-                                      style: TextStyle(
-                                        fontFamily: "Poppins",
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 10.8,
-                                        color: Color.fromARGB(255, 53, 53, 53),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 10), // Espacio entre calificación y entrega
-                              // Tiempo de entrega
-                              Image.asset("lib/images/animations/clock.gif", height: 20, width: 20),
-                              SizedBox(width: 2),
-                              Text(
-                                '${restaurantData['tiempo_entrega']} min',
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 53, 53, 53),
-                                  fontSize: 10.8,
-                                  fontFamily: "Poppins",
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            '${restaurantData['descripcion']}',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 53, 53, 53),
-                              fontSize: 13.5,
-                              fontFamily: "Poppins",
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                        ],
+                      Icon(Icons.star, color: Colors.amber, size: 10.8), // Icono de estrella en dorado
+                      SizedBox(width: 0),
+                      Text(
+                        "${restaurantData['calificacion']}",
+                        style: TextStyle(
+                          fontFamily: "Poppins",
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10.8,
+                          color: Color.fromARGB(255, 53, 53, 53),
+                        ),
                       ),
                     ],
                   ),
-                )
+                ),
+                SizedBox(width: 10), // Espacio entre calificación y entrega
+                // Tiempo de entrega
+                Image.asset("lib/images/animations/clock.gif", height: 20, width: 20),
+                SizedBox(width: 2),
+                Text(
+                  '${restaurantData['tiempo_entrega']} min',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 53, 53, 53),
+                    fontSize: 10.8,
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        Column(
+          children: [
+            Text(
+              '${restaurantData['descripcion']}',
+              style: TextStyle(
+                color: Color.fromARGB(255, 53, 53, 53),
+                fontSize: 11.5,
+                fontFamily: "Poppins",
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            SizedBox(height: 10),
+          ],
+        ),
+      ],
+    ),
+  ),
+)
+
                                 
               ],
             ),
@@ -1601,22 +1616,29 @@ child: Card(
 
                   ElevatedButton(
   onPressed: EnableButton ? () {
-    final itemsForUser = groupedItems;
-    print(itemsForUser);
+  final itemsForUser = groupedItems;
+  print(itemsForUser);
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentManagerOrderly(
-          itemsForUser,
-          widget.photoUrl,
-          firestorepath1,
-          firestorepath2,
-          widget.scannedResult,
-        ),
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => PaymentManagerOrderly(
+        itemsForUser,
+        widget.photoUrl,
+        firestorepath1,
+        firestorepath2,
+        widget.scannedResult,
       ),
-    );
-  } : null,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+    ),
+  );
+} : null,
+
   style: ElevatedButton.styleFrom(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10), // Cambia el radio para ajustar la forma del botón
